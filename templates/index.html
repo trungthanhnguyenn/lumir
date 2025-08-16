@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRA CỨU SỐ HỌC ONLINE - Lumir AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .header p {
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+
+        /* Input Form */
+        .input-section {
+            background: rgba(40, 40, 40, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+            align-items: center;
+        }
+
+        .form-group label {
+            min-width: 120px;
+            font-weight: 600;
+            color: #ffd700;
+        }
+
+        .form-group input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            background: rgba(20, 20, 20, 0.8);
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .search-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #8b5cf6, #f97316);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Numerology Chart */
+        .chart-section {
+            background: rgba(20, 20, 20, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            min-height: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+        }
+
+        /* Central Info */
+        .central-info {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .central-info h3 {
+            color: #ffd700;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .central-info p {
+            color: #ccc;
+            font-size: 1.1rem;
+        }
+
+        /* Numerology Circles */
+        .numerology-circle {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffd700, #ffed4e);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 1.5rem;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            border: 3px solid #fff;
+            transition: all 0.3s ease;
+        }
+
+        .numerology-circle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+        }
+
+        .numerology-circle .label {
+            font-size: 0.7rem;
+            margin-top: 2px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        /* Circle Positions */
+        .circle-top { top: 10%; left: 50%; transform: translateX(-50%); }
+        .circle-upper-middle { top: 25%; left: 50%; transform: translateX(-50%); }
+        .circle-left-middle { top: 50%; left: 15%; transform: translateY(-50%); }
+        .circle-right-middle { top: 50%; right: 15%; transform: translateY(-50%); }
+        .circle-bottom-left { bottom: 20%; left: 20%; }
+        .circle-bottom-middle { bottom: 10%; left: 50%; transform: translateX(-50%); }
+        .circle-bottom-right { bottom: 20%; right: 20%; }
+        .circle-below-soul { bottom: 30%; left: 50%; transform: translateX(-50%); }
+
+        /* Connecting Lines */
+        .connecting-line {
+            position: absolute;
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+            height: 2px;
+            border-radius: 1px;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Age Markers */
+        .age-marker {
+            position: absolute;
+            color: #ffd700;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Missing Aspects */
+        .missing-aspects {
+            position: absolute;
+            top: 60%;
+            left: 20%;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #ffd700;
+            border-radius: 20px;
+            padding: 10px 15px;
+            color: #ffd700;
+            font-size: 0.9rem;
+        }
+
+        /* Passion Numbers */
+        .passion-numbers {
+            position: absolute;
+            bottom: 40%;
+            left: 20%;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid #ffd700;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #ffd700;
+            font-size: 0.9rem;
+        }
+
+        /* Bottom Graph */
+        .bottom-graph {
+            position: absolute;
+            bottom: 5%;
+            left: 10%;
+            right: 10%;
+            height: 60px;
+            border: 1px solid #ffd700;
+            border-radius: 30px;
+            background: rgba(255, 215, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .wave-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+            transform: translateY(-50%);
+        }
+
+        .graph-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #ffd700;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 215, 0, 0.3);
+            border-top: 4px solid #ffd700;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error Message */
+        .error-message {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid #dc3545;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #ff6b6b;
+            display: none;
+        }
+
+        /* Success Message */
+        .success-message {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #6bcf7f;
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .form-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .form-group label {
+                min-width: auto;
+                margin-bottom: 5px;
+            }
+            
+            .numerology-circle {
+                width: 60px;
+                height: 60px;
+                font-size: 1.2rem;
+            }
+            
+            .numerology-circle .label {
+                font-size: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>TRA CỨU SỐ HỌC ONLINE</h1>
+            <p>Lumir AI - Hệ thống tính toán thần số học chính xác</p>
+        </div>
+
+        <!-- Input Form -->
+        <div class="input-section">
+            <div class="form-group">
+                <label for="fullName">Họ Tên:</label>
+                <input type="text" id="fullName" placeholder="Nhập họ tên đầy đủ" value="Phạm Thị Tuyền">
+            </div>
+            <div class="form-group">
+                <label for="dateOfBirth">Sinh Nhật:</label>
+                <input type="text" id="dateOfBirth" placeholder="DD/MM/YYYY" value="12/12/1995">
+            </div>
+            <button class="search-btn" onclick="calculateNumerology()">
+                <span>🔍</span>
+                Tra Cứu Ngay
+            </button>
+        </div>
+
+        <!-- Messages -->
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Đang tính toán thần số học...</p>
+        </div>
+
+        <!-- Numerology Chart -->
+        <div class="chart-section" id="chartSection" style="display: none;">
+            <div class="chart-container">
+                <!-- Central Info -->
+                <div class="central-info">
+                    <h3 id="centralName">Phạm Thị Tuyền</h3>
+                    <p id="centralDate">12/12/1995</p>
+                </div>
+
+                <!-- Numerology Circles -->
+                <div class="numerology-circle circle-top">
+                    <span id="maturity">1</span>
+                    <div class="label">Trưởng thành</div>
+                </div>
+
+                <div class="numerology-circle circle-upper-middle">
+                    <span id="lifePath">4</span>
+                    <div class="label">LK</div>
+                </div>
+
+                <div class="numerology-circle circle-left-middle">
+                    <span id="lifePurpose">3</span>
+                    <div class="label">ĐĐ</div>
+                </div>
+
+                <div class="numerology-circle circle-right-middle">
+                    <span id="mission">7</span>
+                    <div class="label">Sứ mệnh</div>
+                </div>
+
+                <div class="numerology-circle circle-bottom-left">
+                    <span id="birthDay">3</span>
+                    <div class="label">Ngày sinh</div>
+                </div>
+
+                <div class="numerology-circle circle-bottom-middle">
+                    <span id="soul">9</span>
+                    <div class="label">Linh hồn</div>
+                </div>
+
+                <div class="numerology-circle circle-bottom-right">
+                    <span id="soulPersonalityLink">2</span>
+                    <div class="label">LK LH - NC</div>
+                </div>
+
+                <div class="numerology-circle circle-bottom-right" style="bottom: 40%;">
+                    <span id="personality">7</span>
+                    <div class="label">Nhân cách</div>
+                </div>
+
+                <div class="numerology-circle circle-below-soul">
+                    <span id="subconscious">8</span>
+                    <div class="label">SMTT</div>
+                </div>
+
+                <!-- Missing Aspects -->
+                <div class="missing-aspects">
+                    <div>Thiếu: <span id="missingAspects">6</span></div>
+                </div>
+
+                <!-- Passion Numbers -->
+                <div class="passion-numbers">
+                    <div>Đam Mê: <span id="passionNumbers">2 5 7 8</span></div>
+                </div>
+
+                <!-- Bottom Graph -->
+                <div class="bottom-graph">
+                    <div class="wave-line"></div>
+                    <div class="graph-dot" style="left: 20%;"></div>
+                    <div class="graph-dot" style="left: 40%;"></div>
+                    <div class="graph-dot" style="left: 60%;"></div>
+                    <div class="graph-dot" style="left: 80%;"></div>
+                    <div class="numerology-circle" style="position: absolute; width: 40px; height: 40px; left: 60%; top: 50%; transform: translate(-50%, -50%);">
+                        <span id="graphNumber">6</span>
+                    </div>
+                </div>
+
+                <!-- Age Markers -->
+                <div class="age-marker" style="top: 15%; left: 30%;">33</div>
+                <div class="age-marker" style="top: 25%; right: 30%;">42</div>
+                <div class="age-marker" style="bottom: 30%; left: 30%;">51</div>
+                <div class="age-marker" style="bottom: 20%; right: 30%;">60</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function calculateNumerology() {
+            const fullName = document.getElementById('fullName').value.trim();
+            const dateOfBirth = document.getElementById('dateOfBirth').value.trim();
+            
+            // Validation
+            if (!fullName || !dateOfBirth) {
+                showError('Vui lòng nhập đầy đủ họ tên và ngày sinh');
+                return;
+            }
+
+            // Show loading
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const response = await fetch('/api/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        date_of_birth: dateOfBirth
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess('Tính toán thành công!');
+                    updateChart(result.data, result.input);
+                } else {
+                    showError(result.error || 'Có lỗi xảy ra');
+                }
+            } catch (error) {
+                showError('Không thể kết nối đến server. Vui lòng thử lại.');
+                console.error('Error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function updateChart(data, input) {
+            // Update central info
+            document.getElementById('centralName').textContent = input.full_name;
+            document.getElementById('centralDate').textContent = input.date_of_birth;
+
+            // Update numerology numbers
+            document.getElementById('maturity').textContent = data.maturity || '-';
+            document.getElementById('lifePath').textContent = data.life_path || '-';
+            document.getElementById('lifePurpose').textContent = data.life_purpose || '-';
+            document.getElementById('mission').textContent = data.life_purpose || '-'; // Using life_purpose as mission
+            document.getElementById('birthDay').textContent = data.birth_day || '-';
+            document.getElementById('soul').textContent = data.soul || '-';
+            document.getElementById('personality').textContent = data.personality || '-';
+            document.getElementById('soulPersonalityLink').textContent = data.soul_personality_link || '-';
+            document.getElementById('subconscious').textContent = data.subconscious_strength || '-';
+
+            // Update missing aspects
+            const missingAspects = data.missing_aspects || [];
+            document.getElementById('missingAspects').textContent = missingAspects.join(', ') || '0';
+
+            // Update passion numbers
+            const passionNumbers = data.passion || [];
+            document.getElementById('passionNumbers').textContent = passionNumbers.join(' ') || '0';
+
+            // Update graph number (using emotional response style)
+            document.getElementById('graphNumber').textContent = data.emotional_response_style || '-';
+
+            // Show chart
+            document.getElementById('chartSection').style.display = 'block';
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                calculateNumerology();
+            }
+        });
+
+        // Initialize with sample data
+        window.onload = function() {
+            // Auto-calculate with sample data after page loads
+            setTimeout(() => {
+                calculateNumerology();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

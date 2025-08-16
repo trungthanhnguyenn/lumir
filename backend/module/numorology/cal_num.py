@@ -462,9 +462,9 @@ class CalNum:
 
         Formula: reduceNumber(abs(soul - personality)) (Keep master number 11/22)
         """
-        soul = self.calculate_soul()
-        personality = self.calculate_personality()
-        return self.reduce_number(abs(soul - personality))
+        lifepath = self.calculate_life_path()
+        life_purpose = self.calculate_life_purpose()
+        return self.reduce_number(abs(lifepath - life_purpose))
 
     def calculate_soul_personality_link(self) -> int:
         """
@@ -472,9 +472,9 @@ class CalNum:
 
         Formula: reduceToSingleDigit(abs(soul - personality)) (1 digit)
         """
-        lifepath = self.calculate_life_path()
-        life_purpose = self.calculate_life_purpose()
-        return self.reduce_to_single_digit(abs(lifepath - life_purpose))
+        soul = self.calculate_soul()
+        personality = self.calculate_personality()
+        return self.reduce_to_single_digit(abs(soul - personality))
 
     def calculate_milestone_phase(self) -> Dict[str, int]:
         """
@@ -605,11 +605,11 @@ class CalNum:
             "subconscious_strength": self.calculate_subconscious_strength(),
             "maturity": self.calculate_maturity(),
             "missing_aspects": list(self.get_missing_aspects()),
-            "shadow_challenge_code": self.check_karmic_debt(),  # Đổi tên theo yêu cầu
+            "shadow_challenge_code": self.check_karmic_debt(),
             "passion": self.calculate_passion(),
             "societal_adaptability_index": self.get_societal_adaptability_index(),
             "emotional_response_style": self.calculate_emotional_response_style(),
-            "link_connection": self.calculate_link_connection(),
+            "lifepath_life_purpose_link": self.calculate_link_connection(),
             "soul_personality_link": self.calculate_soul_personality_link(),
             "milestone_phase": self.calculate_milestone_phase(),
             "challenge": self.calculate_challenge(),
