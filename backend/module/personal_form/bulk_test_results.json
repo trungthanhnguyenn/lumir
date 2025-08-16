@@ -1,0 +1,280 @@
+[
+  {
+    "success": true,
+    "payload": {
+      "full_name": "Huỳnh Đăng Nghĩa",
+      "date_of_birth": "27/10/2002",
+      "current_date": "07/08/2025"
+    },
+    "api_response": {
+      "success": true,
+      "data": {
+        "input": {
+          "full_name": "Huỳnh Đăng Nghĩa",
+          "date_of_birth": "27/10/2002",
+          "current_date": "07/08/2025"
+        },
+        "pwi_indices": {
+          "life_path": 5,
+          "life_purpose": 6,
+          "balance": 8,
+          "soul": 5,
+          "personality": 1,
+          "birth_day": 9,
+          "subconscious_strength": 7,
+          "maturity": 11,
+          "missing_aspects": [
+            2,
+            6
+          ],
+          "shadow_challenge_code": "Có Karmic Debt",
+          "passion": [
+            8,
+            7,
+            5
+          ],
+          "societal_adaptability_index": "Gen Z - Công nghệ số, đa dạng, thay đổi nhanh",
+          "emotional_response_style": 5,
+          "link_connection": 4,
+          "milestone_phase": {
+            "milestone_1": 1,
+            "milestone_2": 4,
+            "milestone_3": 5,
+            "milestone_4": 5
+          },
+          "challenge": {
+            "challenge_1": 8,
+            "challenge_2": 5,
+            "challenge_3": 3,
+            "challenge_4": 3
+          },
+          "soul_personality_link": 4,
+          "rational_thinking": 3,
+          "age_milestones": [
+            31,
+            40,
+            49,
+            58
+          ],
+          "alignment_signals": {
+            "personal_year": 1,
+            "personal_day": 7
+          },
+          "life_strategy_map": {
+            "core_strengths": [],
+            "growth_areas": [
+              "Cần phát triển các khía cạnh: 2, 6"
+            ],
+            "life_direction": "",
+            "key_recommendations": [
+              "Tập trung vào điểm mạnh tự nhiên",
+              "Phát triển các khu vực còn thiếu",
+              "Tận dụng chu kỳ phát triển cá nhân",
+              "Cân bằng giữa động lực nội tại và hình ảnh bên ngoài"
+            ]
+          }
+        }
+      }
+    },
+    "local_results": {
+      "day_of_birth": "27/10/2002",
+      "current_date": "07/08/2025",
+      "life_path": 5,
+      "life_purpose": 6,
+      "balance": 8,
+      "soul": 5,
+      "personality": 1,
+      "birth_day": 9,
+      "subconscious_strength": 7,
+      "maturity": 11,
+      "missing_aspects": [
+        2,
+        6
+      ],
+      "shadow_challenge_code": "Có Karmic Debt",
+      "passion": [
+        8,
+        7,
+        5
+      ],
+      "societal_adaptability_index": "Gen Z - Công nghệ số, đa dạng, thay đổi nhanh",
+      "emotional_response_style": 5,
+      "link_connection": 4,
+      "soul_personality_link": 4,
+      "milestone_phase": {
+        "milestone_1": 1,
+        "milestone_2": 4,
+        "milestone_3": 5,
+        "milestone_4": 5
+      },
+      "challenge": {
+        "challenge_1": 8,
+        "challenge_2": 5,
+        "challenge_3": 3,
+        "challenge_4": 3
+      },
+      "rational_thinking": 3,
+      "age_milestones": [
+        31,
+        40,
+        49,
+        58
+      ],
+      "alignment_signals": {
+        "personal_year": 1,
+        "personal_day": 7
+      }
+    },
+    "comparison": {
+      "error": "API response missing pwi_indices"
+    },
+    "stats": {
+      "total": 21,
+      "matches": 20,
+      "mismatches": 0,
+      "not_found": 1,
+      "accuracy": 95.23809523809523
+    }
+  },
+  {
+    "success": false,
+    "error": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+  },
+  {
+    "success": true,
+    "payload": {
+      "full_name": "Trần Thị Mai Anh",
+      "date_of_birth": "15/06/1995",
+      "current_date": "20/12/2024"
+    },
+    "api_response": {
+      "success": true,
+      "data": {
+        "input": {
+          "full_name": "Trần Thị Mai Anh",
+          "date_of_birth": "15/06/1995",
+          "current_date": "20/12/2024"
+        },
+        "pwi_indices": {
+          "life_path": 9,
+          "life_purpose": 1,
+          "balance": 8,
+          "soul": 3,
+          "personality": 7,
+          "birth_day": 6,
+          "subconscious_strength": 6,
+          "maturity": 1,
+          "missing_aspects": [
+            3,
+            6,
+            7
+          ],
+          "shadow_challenge_code": "Không có Karmic Debt",
+          "passion": [
+            9,
+            1
+          ],
+          "societal_adaptability_index": "Gen Y (Millennials) - Cân bằng công việc-cuộc sống, công nghệ",
+          "emotional_response_style": 8,
+          "link_connection": 4,
+          "milestone_phase": {
+            "milestone_1": 3,
+            "milestone_2": 3,
+            "milestone_3": 6,
+            "milestone_4": 3
+          },
+          "challenge": {
+            "challenge_1": 0,
+            "challenge_2": 0,
+            "challenge_3": 0,
+            "challenge_4": 0
+          },
+          "soul_personality_link": 4,
+          "rational_thinking": 2,
+          "age_milestones": [
+            27,
+            36,
+            45,
+            54
+          ],
+          "alignment_signals": {
+            "personal_year": 11,
+            "personal_day": 7
+          },
+          "life_strategy_map": {
+            "core_strengths": [],
+            "growth_areas": [
+              "Cần phát triển các khía cạnh: 3, 6, 7"
+            ],
+            "life_direction": "",
+            "key_recommendations": [
+              "Tập trung vào điểm mạnh tự nhiên",
+              "Phát triển các khu vực còn thiếu",
+              "Tận dụng chu kỳ phát triển cá nhân",
+              "Cân bằng giữa động lực nội tại và hình ảnh bên ngoài"
+            ]
+          }
+        }
+      }
+    },
+    "local_results": {
+      "day_of_birth": "15/06/1995",
+      "current_date": "20/12/2024",
+      "life_path": 9,
+      "life_purpose": 1,
+      "balance": 8,
+      "soul": 3,
+      "personality": 7,
+      "birth_day": 6,
+      "subconscious_strength": 6,
+      "maturity": 1,
+      "missing_aspects": [
+        3,
+        6,
+        7
+      ],
+      "shadow_challenge_code": "Không có Karmic Debt",
+      "passion": [
+        9,
+        1
+      ],
+      "societal_adaptability_index": "Gen Y (Millennials) - Cân bằng công việc-cuộc sống, công nghệ",
+      "emotional_response_style": 8,
+      "link_connection": 4,
+      "soul_personality_link": 4,
+      "milestone_phase": {
+        "milestone_1": 3,
+        "milestone_2": 3,
+        "milestone_3": 6,
+        "milestone_4": 3
+      },
+      "challenge": {
+        "challenge_1": 0,
+        "challenge_2": 0,
+        "challenge_3": 0,
+        "challenge_4": 0
+      },
+      "rational_thinking": 2,
+      "age_milestones": [
+        27,
+        36,
+        45,
+        54
+      ],
+      "alignment_signals": {
+        "personal_year": 11,
+        "personal_day": 7
+      }
+    },
+    "comparison": {
+      "error": "API response missing pwi_indices"
+    },
+    "stats": {
+      "total": 21,
+      "matches": 20,
+      "mismatches": 0,
+      "not_found": 1,
+      "accuracy": 95.23809523809523
+    }
+  }
+]

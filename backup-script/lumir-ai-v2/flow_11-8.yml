@@ -1,0 +1,2990 @@
+summary: LUMIR-QA-V2
+description: ""
+value:
+  modules:
+    - id: e
+      value:
+        type: branchall
+        branches:
+          - expr: ""
+            modules:
+              - id: g
+                value:
+                  lock: |-
+                    # py: 3.11
+                    certifi==2025.8.3
+                    charset-normalizer==3.4.2
+                    idna==3.10
+                    requests==2.32.4
+                    urllib3==2.5.0
+                  type: rawscript
+                  assets: []
+                  content: >
+                    # import wmill
+
+                    # request
+
+
+                    import requests
+
+                    from typing import List, Dict
+
+
+
+                    def list_session_documents(session_id: str) -> List[Dict]:
+                        """
+                        Calls the backend API to list documents for a given session_id.
+                        """
+                        backend_url = "http://192.168.2.78:8008"
+                        endpoint = f"/api/v1/documents/sessions/{session_id}/documents"
+
+                        try:
+                            response = requests.get(backend_url + endpoint)
+                            response.raise_for_status()
+                            return response.json()
+                        except requests.exceptions.RequestException as e:
+                            print(f"Error calling API: {e}")
+                            return {}  # Trả về dictionary rỗng để match với format của kết quả lỗi
+
+
+                    def main(session_id: str):
+                        # Sử dụng trực tiếp biến session_id từ tham số
+                        documents = list_session_documents(session_id)
+
+                        return {"documents": documents}
+                  language: python3
+                  input_transforms:
+                    session_id:
+                      expr: flow_input.session_id
+                      type: javascript
+                skip_if:
+                  expr: flow_input.Upload == false
+                summary: Check and Update
+                continue_on_error: false
+              - id: f
+                value:
+                  lock: |-
+                    # py: 3.11
+                    aiohappyeyeballs==2.6.1
+                    aiohttp==3.12.15
+                    aiosignal==1.4.0
+                    annotated-types==0.7.0
+                    anyio==4.10.0
+                    argon2-cffi==25.1.0
+                    argon2-cffi-bindings==25.1.0
+                    attrs==25.3.0
+                    cachetools==5.5.2
+                    certifi==2025.8.3
+                    cffi==1.17.1
+                    charset-normalizer==3.4.2
+                    dataclasses-json==0.6.7
+                    docx2txt==0.9
+                    filetype==1.2.0
+                    frozenlist==1.7.0
+                    google-ai-generativelanguage==0.6.18
+                    google-api-core==2.25.1
+                    google-auth==2.40.3
+                    googleapis-common-protos==1.70.0
+                    greenlet==3.2.3
+                    grpcio==1.74.0
+                    grpcio-status==1.74.0
+                    h11==0.16.0
+                    h2==4.2.0
+                    hpack==4.1.0
+                    httpcore==1.0.9
+                    httpx==0.28.1
+                    httpx-sse==0.4.1
+                    hyperframe==6.1.0
+                    idna==3.10
+                    jsonpatch==1.33
+                    jsonpointer==3.0.0
+                    langchain==0.3.27
+                    langchain-community==0.3.27
+                    langchain-core==0.3.72
+                    langchain-google-genai==2.1.9
+                    langchain-text-splitters==0.3.9
+                    langsmith==0.4.11
+                    marshmallow==3.26.1
+                    minio==7.2.16
+                    multidict==6.6.3
+                    mypy-extensions==1.1.0
+                    numpy==2.3.2
+                    orjson==3.11.1
+                    packaging==25.0
+                    portalocker==3.2.0
+                    propcache==0.3.2
+                    proto-plus==1.26.1
+                    protobuf==6.31.1
+                    pyasn1==0.6.1
+                    pyasn1-modules==0.4.2
+                    pycparser==2.22
+                    pycryptodome==3.23.0
+                    pydantic==2.11.7
+                    pydantic-core==2.33.2
+                    pydantic-settings==2.10.1
+                    pypdf==5.9.0
+                    python-dotenv==1.1.1
+                    pyyaml==6.0.2
+                    qdrant-client==1.15.1
+                    requests==2.32.4
+                    requests-toolbelt==1.0.0
+                    rsa==4.9.1
+                    sniffio==1.3.1
+                    sqlalchemy==2.0.42
+                    tenacity==9.1.2
+                    typing-extensions==4.14.1
+                    typing-inspect==0.9.0
+                    typing-inspection==0.4.1
+                    urllib3==2.5.0
+                    wmill==1.518.2
+                    yarl==1.20.1
+                    zstandard==0.23.0
+                  type: rawscript
+                  assets: []
+                  content: >
+                    # requirements:
+
+                    # minio
+
+                    # pydantic
+
+                    # langchain
+
+                    # langchain_community
+
+                    # qdrant-client
+
+                    # langchain_google_genai
+
+                    # pypdf
+
+                    # wmill
+
+                    # docx2txt
+
+
+                    import os
+
+                    import io
+
+                    import tempfile
+
+                    import json
+
+                    import docx2txt
+
+                    import uuid
+
+                    from typing import Dict, Any, List, Optional
+
+                    from minio import Minio
+
+                    from pydantic import BaseModel
+
+                    from urllib.parse import urlparse
+
+                    from langchain_community.document_loaders import
+                    PyPDFLoader, TextLoader
+
+                    from langchain.text_splitter import
+                    RecursiveCharacterTextSplitter
+
+                    from langchain_google_genai import
+                    GoogleGenerativeAIEmbeddings
+
+                    from qdrant_client import QdrantClient, models
+
+                    from qdrant_client.models import PointStruct, Batch  # ←
+                    THÊM IMPORT NÀY
+
+                    import wmill
+
+                    import pypdf
+
+
+
+                    class MinioConfig(BaseModel):
+                        """Cấu hình cho MinIO."""
+
+                        endpoint: str
+                        access_key: str
+                        secret_key: str
+                        secure: bool = True
+
+
+                    class DocumentInfo(BaseModel):
+                        """Thông tin về tài liệu."""
+
+                        document_id: str
+                        user_id: str
+                        filename: str
+                        file_type: str
+                        file_url: str
+                        metadata: Dict[str, Any]
+
+
+                    class MinioResponse(BaseModel):
+                        """Cấu trúc phản hồi từ MinIO."""
+
+                        documents: List[DocumentInfo]
+                        total_found: int
+                        returned_count: int
+                        limit: int
+                        offset: int
+                        processing_time_ms: int
+
+
+                    # --- Hàm chính để xử lý ---
+
+                    def process_and_store_document(
+                        minio_config: MinioConfig,
+                        minio_response: MinioResponse,
+                        qdrant_client: QdrantClient,
+                        qdrant_embeddings_model: GoogleGenerativeAIEmbeddings,
+                        qdrant_vector_size: int,
+                    ) -> Optional[str]:
+                        """
+                        Tải tài liệu từ MinIO, chunking, và lưu vào Qdrant.
+
+                        Args:
+                            minio_config (MinioConfig): Đối tượng cấu hình MinIO.
+                            minio_response (MinioResponse): Đối tượng phản hồi chứa thông tin tài liệu.
+                            qdrant_client (QdrantClient): Client Qdrant đã được khởi tạo.
+                            qdrant_embeddings_model (GoogleGenerativeAIEmbeddings): Embeddings model đã được khởi tạo.
+                            qdrant_vector_size (int): Kích thước của vector embeddings.
+
+                        Returns:
+                            Optional[str]: Tên collection của người dùng đã được xử lý thành công.
+                                           Trả về None nếu không có tài liệu nào được xử lý.
+                        """
+                        processed_collection_name = None
+                        try:
+                            minio_client = Minio(
+                                endpoint=minio_config.endpoint,
+                                access_key=minio_config.access_key,
+                                secret_key=minio_config.secret_key,
+                                secure=minio_config.secure,
+                            )
+
+                            BUCKET_NAME = "documents"
+
+                            if not minio_response.documents:
+                                return None
+
+                            for doc_info in minio_response.documents:
+                                temp_file_path = None
+                                try:
+                                    parsed_url = urlparse(doc_info.file_url)
+                                    path_parts = parsed_url.path.split("/")
+
+                                    if BUCKET_NAME in path_parts:
+                                        bucket_index = path_parts.index(BUCKET_NAME)
+                                        object_name = "/".join(path_parts[bucket_index + 1 :])
+                                    else:
+                                        object_name = "/".join(path_parts[1:])
+
+                                    print(
+                                        f"Đang xử lý tệp: {doc_info.filename} cho người dùng: {doc_info.user_id}"
+                                    )
+                                    print(f"Sử dụng Bucket: {BUCKET_NAME}, Object: {object_name}")
+
+                                    response = minio_client.get_object(BUCKET_NAME, object_name)
+                                    file_data = response.read()
+                                except Exception as e:
+                                    print(f"Lỗi khi tải tệp từ MinIO: {e}. Bỏ qua tài liệu này.")
+                                    continue
+                                finally:
+                                    if "response" in locals():
+                                        response.close()
+                                        response.release_conn()
+
+                                file_extension = doc_info.file_type.lower()
+                                loader = None
+
+                                with tempfile.NamedTemporaryFile(
+                                    suffix=f".{file_extension}", delete=False
+                                ) as temp_file:
+                                    temp_file.write(file_data)
+                                    temp_file_path = temp_file.name
+
+                                if file_extension == "pdf":
+                                    loader = PyPDFLoader(temp_file_path)
+                                # elif file_extension == "docx":
+                                #     loader = Docx2txtLoader(temp_file_path)
+                                elif file_extension == "docx":
+                                    # Use docx2txt to extract text from .docx file
+                                    text = docx2txt.process(temp_file_path)
+                                    # Write extracted text to a temporary text file
+                                    with tempfile.NamedTemporaryFile(
+                                        mode="w", suffix=".txt", delete=False, encoding="utf-8"
+                                    ) as text_file:
+                                        text_file.write(text)
+                                        text_file_path = text_file.name
+                                    loader = TextLoader(text_file_path, encoding="utf-8")
+                                elif file_extension == "txt":
+                                    loader = TextLoader(temp_file_path)
+                                else:
+                                    print(f"Loại tệp {file_extension} không được hỗ trợ. Bỏ qua.")
+                                    if temp_file_path and os.path.exists(temp_file_path):
+                                        os.remove(temp_file_path)
+                                    continue
+
+                                if not loader:
+                                    continue
+
+                                documents = loader.load()
+
+                                text_splitter = RecursiveCharacterTextSplitter(
+                                    chunk_size=500, chunk_overlap=100
+                                )
+                                chunks = text_splitter.split_documents(documents)
+
+                                print(f"Đã tạo {len(chunks)} chunk từ tệp {doc_info.filename}")
+
+                                collection_name = f"user-{doc_info.user_id}"
+
+                                try:
+                                    qdrant_client.get_collection(collection_name)
+                                    print(f"Collection '{collection_name}' đã tồn tại, sẽ cập nhật.")
+                                except Exception:
+                                    print(f"Collection '{collection_name}' chưa tồn tại, đang tạo mới...")
+                                    qdrant_client.create_collection(
+                                        collection_name=collection_name,
+                                        vectors_config=models.VectorParams(
+                                            size=qdrant_vector_size, distance=models.Distance.COSINE
+                                        ),
+                                    )
+
+                                texts_to_embed = [chunk.page_content for chunk in chunks]
+                                embeddings = qdrant_embeddings_model.embed_documents(texts_to_embed)
+
+                                # # Kiểm tra kích thước embedding đầu tiên
+                                # print(f"\n✅ Đã tạo {len(embeddings)} vectors.")
+                                # if embeddings:
+                                #     print(f"✅ Kích thước vector đầu tiên: {len(embeddings[0])}")
+                                #     print(f"✅ Kích thước vector kỳ vọng: {qdrant_vector_size}")
+
+                                points_to_upsert = []
+                                existing_ids = set()
+
+                                # Nếu muốn kiểm tra chunk đã có trong Qdrant không, bạn có thể fetch id từ Qdrant trước,
+                                # hoặc nếu không, chỉ dựa vào UUID này để tránh trùng lặp nội bộ file.
+                                # Ví dụ: existing_ids = set([point.id for point in qdrant_client.scroll(collection_name)])
+
+                                for i, chunk in enumerate(chunks):
+                                    # Tạo seed cho UUID gồm document_id, index chunk, và 50 ký tự đầu của nội dung chunk
+                                    seed_str = f"{doc_info.document_id}_{i}_{chunk.page_content[:50]}"
+                                    chunk_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, seed_str))
+
+                                    # Bỏ qua nếu chunk_id đã tồn tại (trùng chunk)
+                                    if chunk_id in existing_ids:
+                                        print(f"[⚠️] Bỏ qua chunk {i} do trùng chunk_id: {chunk_id}")
+                                        continue
+                                    existing_ids.add(chunk_id)
+
+                                    payload = {
+                                        "document_id": doc_info.document_id,
+                                        "filename": doc_info.filename,
+                                        "file_type": doc_info.file_type,
+                                        "user_id": doc_info.user_id,
+                                        "text": chunk.page_content,
+                                        **doc_info.metadata,
+                                    }
+
+                                    # Kiểm tra payload JSON encode
+                                    try:
+                                        json.dumps(payload)
+                                    except Exception as e:
+                                        print(f"[❌] Chunk {i} payload không thể JSON encode: {e}")
+                                        continue
+
+                                    vector = embeddings[i]
+
+                                    # Kiểm tra kích thước vector
+                                    if len(vector) != qdrant_vector_size:
+                                        print(
+                                            f"[❌] Vector size mismatch tại chunk {i}: {len(vector)} ≠ {qdrant_vector_size}"
+                                        )
+                                        continue
+
+                                    # Kiểm tra vector hợp lệ
+                                    if not isinstance(vector, list) or not all(
+                                        isinstance(v, float) for v in vector
+                                    ):
+                                        print(f"[❌] Vector tại chunk {i} không hợp lệ.")
+                                        continue
+
+                                    point = PointStruct(id=chunk_id, vector=vector, payload=payload)
+                                    points_to_upsert.append(point)
+
+                                    # In ví dụ 1 điểm
+                                    # if i == 0:
+                                    #     print(
+                                    #         f"[✅] Mẫu PointStruct đầu tiên:\n{point.model_dump_json(indent=2)}"
+                                    #     )
+
+                                print(f"✅ Tổng số điểm hợp lệ để upsert: {len(points_to_upsert)}")
+
+                                if points_to_upsert:
+                                    try:
+                                        print(
+                                            f"✅ Sắp upsert {len(points_to_upsert)} chunks vào collection: {collection_name}"
+                                        )
+
+                                        qdrant_client.upsert(
+                                            collection_name=collection_name,
+                                            wait=True,
+                                            points=points_to_upsert,  # ✅ Danh sách PointStruct
+                                        )
+
+                                        print(f"✅ Đã upsert thành công vào collection: {collection_name}")
+                                        processed_collection_name = collection_name
+                                        # print(f"✅ Kiểu dữ liệu points_to_upsert: {type(points_to_upsert)}")
+                                        # print(f"✅ Kiểu phần tử đầu tiên: {type(points_to_upsert[0])}")
+                                    except Exception as upsert_error:
+                                        print(f"[❌] Lỗi khi gọi Qdrant upsert: {upsert_error}")
+
+                                # Xóa tệp tạm sau khi xử lý
+                                if temp_file_path and os.path.exists(temp_file_path):
+                                    os.remove(temp_file_path)
+
+                        except Exception as e:
+                            print(f"Đã xảy ra lỗi: {e}")
+
+                        return processed_collection_name
+
+
+                    # --- Hàm chính để chạy (Đã sửa lại để phù hợp với Wmill)
+                    ---
+
+                    def main(Qdrant_config: Dict, MinIO_config: Dict, data:
+                    Dict):
+                        if not data:
+                            return None
+                        try:
+                            minio_config = MinioConfig(
+                                endpoint=MinIO_config["endpoint"],
+                                access_key=MinIO_config["access_key"],
+                                secret_key=MinIO_config["secret_key"],
+                                secure=MinIO_config["secure"],
+                            )
+
+                            qdrant_url = f"http://{Qdrant_config['host']}:{Qdrant_config['port']}"
+                            qdrant_client = QdrantClient(url=qdrant_url, check_compatibility=False)
+                            qdrant_vector_size = Qdrant_config["vector_size"]
+
+                            api_key_data = json.loads(wmill.get_variable("u/sktkctman2/api_key"))
+                            os.environ["GOOGLE_API_KEY"] = api_key_data.get("GEMINI_API_KEY", "")
+
+                            qdrant_embeddings_model = GoogleGenerativeAIEmbeddings(
+                                model="models/embedding-001"
+                            )
+
+                            minio_response = MinioResponse(**data)
+
+                            result = process_and_store_document(
+                                minio_config,
+                                minio_response,
+                                qdrant_client,
+                                qdrant_embeddings_model,
+                                qdrant_vector_size,
+                            )
+
+                            print("Quá trình xử lý hoàn tất. Collection đã được xử lý:")
+                            print(json.dumps(result, indent=2))
+
+                            return result
+
+                        except Exception as e:
+                            print(f"Lỗi trong hàm main: {e}")
+                            raise
+                  language: python3
+                  input_transforms:
+                    data:
+                      expr: results.g.documents
+                      type: javascript
+                    MinIO_config:
+                      expr: flow_input.MinIO_Config
+                      type: javascript
+                    Qdrant_config:
+                      expr: flow_input.Qdrant_Config
+                      type: javascript
+                skip_if:
+                  expr: flow_input.Upload == false
+                summary: Get Document & Insert Qdrant
+                continue_on_error: false
+              - id: i
+                value:
+                  lock: |-
+                    # py: 3.11
+                    aiohappyeyeballs==2.6.1
+                    aiohttp==3.12.15
+                    aiosignal==1.4.0
+                    annotated-types==0.7.0
+                    anyio==4.10.0
+                    attrdict==2.0.1
+                    attrs==25.3.0
+                    boto3==1.40.3
+                    botocore==1.40.3
+                    brotli==1.1.0
+                    certifi==2025.8.3
+                    charset-normalizer==3.4.2
+                    filelock==3.18.0
+                    frozenlist==1.7.0
+                    fsspec==2025.7.0
+                    gevent==25.5.1
+                    geventhttpclient==2.3.4
+                    greenlet==3.2.3
+                    grpcio==1.67.1
+                    h11==0.16.0
+                    h2==4.2.0
+                    hf-xet==1.1.7
+                    hpack==4.1.0
+                    httpcore==1.0.9
+                    httpx==0.28.1
+                    huggingface-hub==0.34.3
+                    hyperframe==6.1.0
+                    idna==3.10
+                    jmespath==1.0.1
+                    multidict==6.6.3
+                    numpy==2.2.4
+                    packaging==25.0
+                    portalocker==3.2.0
+                    propcache==0.3.2
+                    protobuf==5.29.5
+                    pydantic==2.11.7
+                    pydantic-core==2.33.2
+                    python-dateutil==2.9.0.post0
+                    python-rapidjson==1.21
+                    pyyaml==6.0.2
+                    qdrant-client==1.15.1
+                    regex==2025.7.34
+                    requests==2.32.4
+                    s3transfer==0.13.1
+                    safetensors==0.5.3
+                    setuptools==80.9.0
+                    six==1.17.0
+                    sniffio==1.3.1
+                    tokenizers==0.21.4
+                    tqdm==4.67.1
+                    transformers==4.55.0
+                    trism @ git+https://github.com/hieupth/trism@d34acfa6e3f166c28eb7f907fea4f441c90255e0
+                    tritonclient==2.59.0
+                    typing-extensions==4.14.1
+                    typing-inspection==0.4.1
+                    urllib3==2.5.0
+                    wmill==1.518.2
+                    yarl==1.20.1
+                    zope-event==5.1.1
+                    zope-interface==7.2
+                  type: rawscript
+                  assets: []
+                  content: >
+                    # requirements:
+
+                    # tritonclient[http]
+
+                    # tritonclient[grpc]
+
+                    # gevent
+
+                    # git+https://github.com/hieupth/trism
+
+                    # grpcio
+
+                    # httpx
+
+                    # transformers
+
+                    # numpy==2.2.4
+
+                    # attrdict
+
+                    # boto3
+
+                    # qdrant_client
+
+                    # wmill
+
+
+                    import tritonclient.http as httpclient
+
+                    import tritonclient.grpc as grpcclient
+
+                    from trism import TritonModel
+
+                    import numpy as np
+
+                    from typing import List, Dict
+
+                    from qdrant_client import QdrantClient
+
+                    import wmill
+
+                    import json
+
+
+
+                    def embedding_query(texts: str, config: Dict, model_name:
+                    str):
+                        bls = TritonModel(
+                            model=model_name,
+                            version=config["version"],
+                            url=config["url"],
+                            grpc=config["grpc"],
+                        )
+
+                        # Wrap the single string in an extra list so the batch dim = 1
+                        bls_input = np.array([[texts.encode("utf-8")]], dtype=object)
+
+                        bls_result = bls.run(data=[bls_input])
+
+                        output_bls = list(bls_result.values())[0]
+                        output_bls = output_bls.reshape(1, -1, 768)[:, 0].tolist()
+
+                        return np.array(output_bls[0])  # shape (768,)
+
+
+                    def main(
+                        texts: str,
+                        config: Dict,
+                        collection_name: str,
+                        Qdrant_config: Dict,
+                        model_name: str = "mbert.qry.backend-python",
+                    ):
+                        if not collection_name:
+                            return [], texts
+
+                        query_embed = embedding_query(texts, config, model_name)
+
+                        # Ensure query_embed is a list of floats
+                        if not isinstance(query_embed, list):
+                            query_embed = query_embed.tolist()
+
+                        # Ensure query_embed is a single vector
+                        if isinstance(query_embed[0], list):
+                            query_embed = query_embed[0]
+
+                        qdrant_url = f"http://{Qdrant_config['host']}:{Qdrant_config['port']}"
+                        client = QdrantClient(url=qdrant_url, check_compatibility=False)
+                        # qdrant_vector_size = Qdrant_config["vector_size"]
+
+                        # client = QdrantClient(url)
+                        print("collection_name: ", collection_name)
+                        result = client.search(
+                            collection_name=collection_name, query_vector=query_embed, limit=10
+                        )
+
+                        return result, texts
+                  language: python3
+                  input_transforms:
+                    texts:
+                      expr: flow_input.Question
+                      type: javascript
+                    config:
+                      expr: flow_input.RAG_Config
+                      type: javascript
+                    model_name:
+                      type: static
+                      value: mbert.qry.backend-python
+                    Qdrant_config:
+                      expr: flow_input.Qdrant_Config
+                      type: javascript
+                    collection_name:
+                      expr: results.f
+                      type: javascript
+                skip_if:
+                  expr: flow_input.Upload == false
+                summary: Retrieve
+                continue_on_error: false
+              - id: j
+                value:
+                  lock: |-
+                    # py: 3.11
+                    aiohappyeyeballs==2.6.1
+                    aiohttp==3.12.15
+                    aiosignal==1.4.0
+                    annotated-types==0.7.0
+                    anyio==4.10.0
+                    attrdict==2.0.1
+                    attrs==25.3.0
+                    boto3==1.40.3
+                    botocore==1.40.3
+                    brotli==1.1.0
+                    certifi==2025.8.3
+                    charset-normalizer==3.4.2
+                    filelock==3.18.0
+                    frozenlist==1.7.0
+                    fsspec==2025.7.0
+                    gevent==25.5.1
+                    geventhttpclient==2.3.4
+                    greenlet==3.2.3
+                    grpcio==1.67.1
+                    h11==0.16.0
+                    h2==4.2.0
+                    hf-xet==1.1.7
+                    hpack==4.1.0
+                    httpcore==1.0.9
+                    httpx==0.28.1
+                    huggingface-hub==0.34.3
+                    hyperframe==6.1.0
+                    idna==3.10
+                    jmespath==1.0.1
+                    multidict==6.6.3
+                    numpy==2.2.4
+                    packaging==25.0
+                    portalocker==3.2.0
+                    propcache==0.3.2
+                    protobuf==5.29.5
+                    pydantic==2.11.7
+                    pydantic-core==2.33.2
+                    python-dateutil==2.9.0.post0
+                    python-rapidjson==1.21
+                    pyyaml==6.0.2
+                    qdrant-client==1.15.1
+                    regex==2025.7.34
+                    requests==2.32.4
+                    s3transfer==0.13.1
+                    safetensors==0.5.3
+                    setuptools==80.9.0
+                    six==1.17.0
+                    sniffio==1.3.1
+                    tokenizers==0.21.4
+                    tqdm==4.67.1
+                    transformers==4.55.0
+                    trism @ git+https://github.com/hieupth/trism@d34acfa6e3f166c28eb7f907fea4f441c90255e0
+                    tritonclient==2.59.0
+                    typing-extensions==4.14.1
+                    typing-inspection==0.4.1
+                    urllib3==2.5.0
+                    wmill==1.518.2
+                    yarl==1.20.1
+                    zope-event==5.1.1
+                    zope-interface==7.2
+                  type: rawscript
+                  assets: []
+                  content: >
+                    # requirements:
+
+                    # tritonclient[http]
+
+                    # tritonclient[grpc]
+
+                    # gevent
+
+                    # git+https://github.com/hieupth/trism
+
+                    # grpcio
+
+                    # httpx
+
+                    # transformers
+
+                    # numpy==2.2.4
+
+                    # attrdict
+
+                    # boto3
+
+                    # qdrant_client
+
+                    # wmill
+
+
+                    import tritonclient.http as httpclient
+
+                    import tritonclient.grpc as grpcclient
+
+                    from trism import TritonModel
+
+                    import numpy as np
+
+                    from typing import List, Dict
+
+                    from qdrant_client import QdrantClient
+
+                    import wmill
+
+                    import json
+
+
+
+                    def reranking(
+                        query: str,
+                        contexts: List[str],
+                        config: Dict,
+                        model_name: str,
+                    ):
+                        bls = TritonModel(
+                            model=model_name,
+                            version=config["version"],
+                            url=config["url"],
+                            grpc=config["grpc"],
+                        )
+
+                        query_np = np.array([query.encode("utf-8")], dtype=object)
+                        context_np = np.array([c.encode("utf-8") for c in contexts], dtype=object)
+
+                        bls_result = bls.run(data=[query_np, context_np])
+
+                        bls_logits = bls_result["logits"]
+                        score_bls = bls_logits.reshape(-1).tolist()
+                        return score_bls
+
+
+                    def main(
+                        query: str,
+                        chunks_list,
+                        config: Dict,
+                        model_rerank: str = "mbert.rerank.backend-python",
+                        rerank: bool = False,
+                    ):
+                        if not chunks_list:
+                            return []
+
+                        if not rerank:
+                            return chunks_list
+
+                        scores = []
+                        for chunk in chunks_list:
+                            if hasattr(chunk, "payload") and "text" in chunk.payload:
+                                context = [chunk.payload["text"]]
+                                score = reranking(query, context, model_rerank, config)
+                                scores.append(score[0])
+                            else:
+                                scores.append(0.0)
+
+                        sorted_chunks = sorted(zip(chunks_list, scores), key=lambda x: x[1], reverse=True)
+                        list_chunks = [chunk for chunk, score in sorted_chunks]
+                        print(list_chunks)
+                        return list_chunks
+                  language: python3
+                  input_transforms:
+                    query:
+                      expr: flow_input.Question
+                      type: javascript
+                    config:
+                      expr: flow_input.RAG_Config
+                      type: javascript
+                    rerank:
+                      expr: flow_input.rerank
+                      type: javascript
+                    chunks_list:
+                      expr: results.i[0]
+                      type: javascript
+                    model_rerank:
+                      type: static
+                      value: mbert.rerank.backend-python
+                skip_if:
+                  expr: "false"
+                summary: Rerank
+                continue_on_error: false
+            summary: Has Upload
+            parallel: true
+            skip_failure: false
+          - expr: "false"
+            modules:
+              - id: n
+                value:
+                  lock: |-
+                    # py: 3.11
+                    aiohappyeyeballs==2.6.1
+                    aiohttp==3.12.15
+                    aiosignal==1.4.0
+                    annotated-types==0.7.0
+                    anyio==4.10.0
+                    attrdict==2.0.1
+                    attrs==25.3.0
+                    boto3==1.40.3
+                    botocore==1.40.3
+                    brotli==1.1.0
+                    cachetools==5.5.2
+                    certifi==2025.8.3
+                    charset-normalizer==3.4.2
+                    dataclasses-json==0.6.7
+                    docx2txt==0.9
+                    filelock==3.18.0
+                    filetype==1.2.0
+                    frozenlist==1.7.0
+                    fsspec==2025.7.0
+                    gevent==25.5.1
+                    geventhttpclient==2.3.4
+                    google-ai-generativelanguage==0.6.18
+                    google-api-core==2.25.1
+                    google-auth==2.40.3
+                    googleapis-common-protos==1.70.0
+                    greenlet==3.2.3
+                    grpcio==1.67.1
+                    grpcio-status==1.67.1
+                    h11==0.16.0
+                    h2==4.2.0
+                    hf-xet==1.1.7
+                    hpack==4.1.0
+                    httpcore==1.0.9
+                    httpx==0.28.1
+                    httpx-sse==0.4.1
+                    huggingface-hub==0.34.3
+                    hyperframe==6.1.0
+                    idna==3.10
+                    jmespath==1.0.1
+                    jsonpatch==1.33
+                    jsonpointer==3.0.0
+                    langchain==0.3.27
+                    langchain-community==0.3.27
+                    langchain-core==0.3.72
+                    langchain-google-genai==2.1.9
+                    langchain-text-splitters==0.3.9
+                    langsmith==0.4.12
+                    marshmallow==3.26.1
+                    multidict==6.6.3
+                    mypy-extensions==1.1.0
+                    numpy==2.2.4
+                    orjson==3.11.1
+                    packaging==25.0
+                    portalocker==3.2.0
+                    propcache==0.3.2
+                    proto-plus==1.26.1
+                    protobuf==5.29.5
+                    pyasn1==0.6.1
+                    pyasn1-modules==0.4.2
+                    pydantic==2.11.7
+                    pydantic-core==2.33.2
+                    pydantic-settings==2.10.1
+                    pypdf==5.9.0
+                    python-dateutil==2.9.0.post0
+                    python-dotenv==1.1.1
+                    python-rapidjson==1.21
+                    pyyaml==6.0.2
+                    qdrant-client==1.15.1
+                    regex==2025.7.34
+                    requests==2.32.4
+                    requests-toolbelt==1.0.0
+                    rsa==4.9.1
+                    s3transfer==0.13.1
+                    safetensors==0.5.3
+                    setuptools==80.9.0
+                    six==1.17.0
+                    sniffio==1.3.1
+                    sqlalchemy==2.0.42
+                    tenacity==9.1.2
+                    tokenizers==0.21.4
+                    tqdm==4.67.1
+                    transformers==4.55.0
+                    trism @ git+https://github.com/hieupth/trism@d34acfa6e3f166c28eb7f907fea4f441c90255e0
+                    tritonclient==2.59.0
+                    typing-extensions==4.14.1
+                    typing-inspect==0.9.0
+                    typing-inspection==0.4.1
+                    urllib3==2.5.0
+                    wmill==1.518.2
+                    yarl==1.20.1
+                    zope-event==5.1.1
+                    zope-interface==7.2
+                    zstandard==0.23.0
+                  type: rawscript
+                  assets: []
+                  content: >
+                    # requirements:
+
+                    # tritonclient[http]
+
+                    # tritonclient[grpc]
+
+                    # gevent
+
+                    # git+https://github.com/hieupth/trism
+
+                    # grpcio
+
+                    # httpx
+
+                    # transformers
+
+                    # numpy==2.2.4
+
+                    # attrdict
+
+                    # boto3
+
+                    # pydantic
+
+                    # langchain
+
+                    # langchain_community
+
+                    # qdrant-client
+
+                    # langchain_google_genai
+
+                    # pypdf
+
+                    # docx2txt
+
+                    # wmill
+
+
+
+                    import os
+
+                    import io
+
+                    import tempfile
+
+                    import docx2txt
+
+                    import json
+
+                    import uuid
+
+                    from typing import Dict, Any, List, Optional, Set
+
+                    from boto3 import client
+
+                    from pydantic import BaseModel
+
+                    from langchain_community.document_loaders import
+                    PyPDFLoader, TextLoader, Docx2txtLoader
+
+                    from langchain.text_splitter import
+                    RecursiveCharacterTextSplitter
+
+                    from langchain_google_genai import
+                    GoogleGenerativeAIEmbeddings
+
+                    from qdrant_client import QdrantClient, models
+
+                    from qdrant_client.models import PointStruct, Batch
+
+                    import wmill
+
+
+
+                    class DocumentInfo(BaseModel):
+                        """Thông tin về tài liệu."""
+
+                        document_id: str
+                        user_id: str
+                        filename: str
+                        file_type: str
+                        file_url: str
+                        metadata: Dict[str, Any]
+
+
+                    class MinioResponse(BaseModel):
+                        """Cấu trúc phản hồi từ MinIO."""
+
+                        documents: List[DocumentInfo]
+                        total_found: int
+                        returned_count: int
+                        limit: int
+                        offset: int
+                        processing_time_ms: int
+
+
+                    def ensure_collection_exists(
+                        qdrant_client: QdrantClient, collection_name: str, vector_size: int
+                    ):
+                        """Ensure that the collection exists in Qdrant, create it if it doesn't."""
+                        try:
+                            collection_info = qdrant_client.get_collection(collection_name)
+                            print(f"Collection '{collection_name}' already exists.")
+                            return True
+                        except Exception as e:
+                            print(f"Collection '{collection_name}' does not exist, creating it now.")
+                            try:
+                                qdrant_client.create_collection(
+                                    collection_name=collection_name,
+                                    vectors_config=models.VectorParams(
+                                        size=vector_size, distance=models.Distance.COSINE
+                                    ),
+                                )
+                                print(f"Successfully created collection '{collection_name}'")
+                                return True
+                            except Exception as create_error:
+                                print(f"Error creating collection: {create_error}")
+                                return False
+
+
+                    def get_existing_point_ids(
+                        qdrant_client: QdrantClient, collection_name: str
+                    ) -> Set[str]:
+                        """Safely get existing point IDs from Qdrant collection."""
+                        existing_ids = set()
+                        try:
+                            # Use scroll to get all points with pagination
+                            scroll_result = qdrant_client.scroll(
+                                collection_name=collection_name,
+                                limit=10000,  # Adjust based on your needs
+                                with_payload=False,  # We only need IDs
+                                with_vectors=False,  # We don't need vectors for ID checking
+                            )
+
+                            points, next_page_offset = scroll_result
+
+                            if points:
+                                for point in points:
+                                    if hasattr(point, "id") and point.id:
+                                        existing_ids.add(str(point.id))
+
+                            # Handle pagination if there are more points
+                            while next_page_offset:
+                                scroll_result = qdrant_client.scroll(
+                                    collection_name=collection_name,
+                                    limit=10000,
+                                    offset=next_page_offset,
+                                    with_payload=False,
+                                    with_vectors=False,
+                                )
+                                points, next_page_offset = scroll_result
+
+                                if points:
+                                    for point in points:
+                                        if hasattr(point, "id") and point.id:
+                                            existing_ids.add(str(point.id))
+
+                            print(
+                                f"Found {len(existing_ids)} existing points in collection '{collection_name}'"
+                            )
+
+                        except Exception as e:
+                            print(f"Error fetching existing points from Qdrant: {e}")
+                            print(f"Proceeding without duplicate check for collection '{collection_name}'")
+
+                        return existing_ids
+
+
+                    def process_folder(
+                        s3_client: client,
+                        bucket_name: str,
+                        folder_key: str,
+                        qdrant_client: QdrantClient,
+                        qdrant_embeddings_model: GoogleGenerativeAIEmbeddings,
+                        qdrant_vector_size: int,
+                        collection_name: str,
+                    ) -> None:
+                        """
+                        Process a folder on S3, find all supported files, chunk them, and upload to Qdrant.
+                        """
+                        try:
+                            objects = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=folder_key)
+                            if "Contents" not in objects:
+                                print(f"No files found in folder: {folder_key}")
+                                return
+
+                            # Ensure collection exists before processing
+                            if not ensure_collection_exists(
+                                qdrant_client, collection_name, qdrant_vector_size
+                            ):
+                                return
+
+                            # Get existing point IDs once for the entire folder processing
+                            existing_ids = get_existing_point_ids(qdrant_client, collection_name)
+
+                            for obj in objects["Contents"]:
+                                key = obj["Key"]
+                                if not key.endswith((".pdf", ".docx", ".txt")):
+                                    continue
+
+                                print(f"Processing file: {key}")
+
+                                try:
+                                    response = s3_client.get_object(Bucket=bucket_name, Key=key)
+                                    file_data = response["Body"].read()
+
+                                    file_extension = key.split(".")[-1].lower()
+                                    loader = None
+
+                                    with tempfile.NamedTemporaryFile(
+                                        suffix=f".{file_extension}", delete=False
+                                    ) as temp_file:
+                                        temp_file.write(file_data)
+                                        temp_file_path = temp_file.name
+
+                                    try:
+                                        if file_extension == "pdf":
+                                            loader = PyPDFLoader(temp_file_path)
+                                        elif file_extension == "docx":
+                                            # Use docx2txt to extract text from .docx file
+                                            text = docx2txt.process(temp_file_path)
+                                            # Write extracted text to a temporary text file
+                                            with tempfile.NamedTemporaryFile(
+                                                mode="w", suffix=".txt", delete=False, encoding="utf-8"
+                                            ) as text_file:
+                                                text_file.write(text)
+                                                text_file_path = text_file.name
+                                            loader = TextLoader(text_file_path, encoding="utf-8")
+                                        elif file_extension == "txt":
+                                            loader = TextLoader(temp_file_path, encoding="utf-8")
+                                        else:
+                                            print(f"File type {file_extension} is not supported. Skipping.")
+                                            continue
+
+                                        if not loader:
+                                            continue
+
+                                        documents = loader.load()
+                                        if not documents:
+                                            print(f"No content extracted from file: {key}")
+                                            continue
+
+                                        text_splitter = RecursiveCharacterTextSplitter(
+                                            chunk_size=1024, chunk_overlap=100
+                                        )
+                                        chunks = text_splitter.split_documents(documents)
+
+                                        print(f"Created {len(chunks)} chunks from file {key}")
+
+                                        points_to_upsert = []
+                                        skipped_count = 0
+
+                                        for i, chunk in enumerate(chunks):
+                                            # Create deterministic chunk ID
+                                            chunk_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{key}_{i}"))
+
+                                            if chunk_id in existing_ids:
+                                                skipped_count += 1
+                                                continue
+
+                                            # Skip empty chunks
+                                            if not chunk.page_content.strip():
+                                                continue
+
+                                            payload = {
+                                                "filename": key,
+                                                "chunk_index": i,
+                                                "text": chunk.page_content,
+                                            }
+
+                                            try:
+                                                vector = qdrant_embeddings_model.embed_query(
+                                                    chunk.page_content
+                                                )
+                                                if len(vector) != qdrant_vector_size:
+                                                    print(
+                                                        f"Vector size mismatch for chunk {i}: {len(vector)} != {qdrant_vector_size}"
+                                                    )
+                                                    continue
+
+                                                point = PointStruct(
+                                                    id=chunk_id, vector=vector, payload=payload
+                                                )
+                                                points_to_upsert.append(point)
+                                                existing_ids.add(
+                                                    chunk_id
+                                                )  # Add to existing_ids to prevent duplicates in the same batch
+
+                                            except Exception as embed_error:
+                                                print(
+                                                    f"Error embedding chunk {i} from file {key}: {embed_error}"
+                                                )
+                                                continue
+
+                                        if points_to_upsert:
+                                            try:
+                                                qdrant_client.upsert(
+                                                    collection_name=collection_name, points=points_to_upsert
+                                                )
+                                                print(
+                                                    f"Successfully upserted {len(points_to_upsert)} chunks into collection {collection_name}"
+                                                )
+                                            except Exception as upsert_error:
+                                                print(
+                                                    f"Error upserting chunks from file {key}: {upsert_error}"
+                                                )
+
+                                        if skipped_count > 0:
+                                            print(
+                                                f"Skipped {skipped_count} existing chunks from file {key}"
+                                            )
+
+                                    except Exception as processing_error:
+                                        print(f"Error processing file content {key}: {processing_error}")
+                                    finally:
+                                        # Clean up temporary files
+                                        if os.path.exists(temp_file_path):
+                                            os.remove(temp_file_path)
+                                        if (
+                                            file_extension == "docx"
+                                            and "text_file_path" in locals()
+                                            and os.path.exists(text_file_path)
+                                        ):
+                                            os.remove(text_file_path)
+
+                                except Exception as file_error:
+                                    print(f"Error accessing file {key}: {file_error}")
+                                    continue
+
+                        except Exception as e:
+                            print(f"Error processing folder {folder_key}: {e}")
+
+
+                    def main(
+                        qdrant_config: Dict,
+                        collection_name: str,
+                    ) -> None:
+                        """
+                        Main function to process multiple folders.
+                        """
+                        folders = ["default_trading_number", "personal_day_data", "personal-number"]
+
+                        try:
+                            s3_config = json.loads(wmill.get_variable("u/sktkctman2/s3_storage_config"))
+
+                            s3_client = client(
+                                "s3",
+                                aws_access_key_id=s3_config["access_key_id"],
+                                aws_secret_access_key=s3_config["secret_access_key"],
+                                region_name=s3_config["region_name"],
+                                endpoint_url=s3_config["endpoint_url"],
+                            )
+
+                            qdrant_url = f"http://{qdrant_config['host']}:{qdrant_config['port']}"
+                            qdrant_client = QdrantClient(url=qdrant_url, prefer_grpc=False)
+                            qdrant_vector_size = qdrant_config["vector_size"]
+
+                            api_key_data = json.loads(wmill.get_variable("u/sktkctman2/api_key"))
+                            os.environ["GOOGLE_API_KEY"] = api_key_data.get("GEMINI_API_KEY", "")
+
+                            # Ensure collection exists before processing
+                            if ensure_collection_exists(qdrant_client, collection_name, qdrant_vector_size):
+                                return
+
+                            # start to load
+                            qdrant_embeddings_model = GoogleGenerativeAIEmbeddings(
+                                model="models/embedding-001"
+                            )
+
+                            print(f"Starting processing of {len(folders)} folders...")
+
+                            for folder in folders:
+                                print(f"\n=== Processing folder: {folder} ===")
+                                process_folder(
+                                    s3_client,
+                                    s3_config["bucket_name"],
+                                    folder,
+                                    qdrant_client,
+                                    qdrant_embeddings_model,
+                                    qdrant_vector_size,
+                                    collection_name,
+                                )
+
+                            print("\n=== Processing completed ===")
+
+                        except Exception as e:
+                            print(f"Error in main function: {e}")
+                            raise
+                  language: python3
+                  input_transforms:
+                    qdrant_config:
+                      expr: flow_input.Qdrant_Config
+                      type: javascript
+                    collection_name:
+                      type: static
+                      value: default_lumir
+                summary: Default collection
+              - id: b
+                value:
+                  lock: |-
+                    # py: 3.11
+                    aiohappyeyeballs==2.6.1
+                    aiohttp==3.12.15
+                    aiosignal==1.4.0
+                    annotated-types==0.7.0
+                    anyio==4.10.0
+                    attrdict==2.0.1
+                    attrs==25.3.0
+                    boto3==1.40.3
+                    botocore==1.40.3
+                    brotli==1.1.0
+                    certifi==2025.8.3
+                    charset-normalizer==3.4.2
+                    filelock==3.18.0
+                    frozenlist==1.7.0
+                    fsspec==2025.7.0
+                    gevent==25.5.1
+                    geventhttpclient==2.3.4
+                    greenlet==3.2.3
+                    grpcio==1.67.1
+                    h11==0.16.0
+                    h2==4.2.0
+                    hf-xet==1.1.7
+                    hpack==4.1.0
+                    httpcore==1.0.9
+                    httpx==0.28.1
+                    huggingface-hub==0.34.3
+                    hyperframe==6.1.0
+                    idna==3.10
+                    jmespath==1.0.1
+                    multidict==6.6.3
+                    numpy==2.2.4
+                    packaging==25.0
+                    portalocker==3.2.0
+                    propcache==0.3.2
+                    protobuf==5.29.5
+                    pydantic==2.11.7
+                    pydantic-core==2.33.2
+                    python-dateutil==2.9.0.post0
+                    python-rapidjson==1.21
+                    pyyaml==6.0.2
+                    qdrant-client==1.15.1
+                    regex==2025.7.34
+                    requests==2.32.4
+                    s3transfer==0.13.1
+                    safetensors==0.5.3
+                    setuptools==80.9.0
+                    six==1.17.0
+                    sniffio==1.3.1
+                    tokenizers==0.21.4
+                    tqdm==4.67.1
+                    transformers==4.55.0
+                    trism @ git+https://github.com/hieupth/trism@d34acfa6e3f166c28eb7f907fea4f441c90255e0
+                    tritonclient==2.59.0
+                    typing-extensions==4.14.1
+                    typing-inspection==0.4.1
+                    urllib3==2.5.0
+                    wmill==1.518.2
+                    yarl==1.20.1
+                    zope-event==5.1.1
+                    zope-interface==7.2
+                  type: rawscript
+                  assets: []
+                  content: >
+                    # requirements:
+
+                    # tritonclient[http]
+
+                    # tritonclient[grpc]
+
+                    # gevent
+
+                    # git+https://github.com/hieupth/trism
+
+                    # grpcio
+
+                    # httpx
+
+                    # transformers
+
+                    # numpy==2.2.4
+
+                    # attrdict
+
+                    # boto3
+
+                    # qdrant_client
+
+                    # wmill
+
+
+                    import tritonclient.http as httpclient
+
+                    import tritonclient.grpc as grpcclient
+
+                    from trism import TritonModel
+
+                    import numpy as np
+
+                    from typing import List, Dict
+
+                    from qdrant_client import QdrantClient
+
+                    import wmill
+
+                    import json
+
+
+
+                    def embedding_query(texts: str, config: Dict, model_name:
+                    str):
+                        bls = TritonModel(
+                            model=model_name,
+                            version=config["version"],
+                            url=config["url"],
+                            grpc=config["grpc"],
+                        )
+
+                        # Wrap the single string in an extra list so the batch dim = 1
+                        bls_input = np.array([[texts.encode("utf-8")]], dtype=object)
+
+                        bls_result = bls.run(data=[bls_input])
+
+                        output_bls = list(bls_result.values())[0]
+                        output_bls = output_bls.reshape(1, -1, 768)[:, 0].tolist()
+
+                        return np.array(output_bls[0])  # shape (768,)
+
+
+                    def main(
+                        texts: str,
+                        config: Dict,
+                        Qdrant_config: Dict,
+                        collection_name: str = "default_lumir",
+                        model_name: str = "mbert.qry.backend-python",
+                    ):
+                        query_embed = embedding_query(texts, config, model_name)
+
+                        # Ensure query_embed is a list of floats
+                        if not isinstance(query_embed, list):
+                            query_embed = query_embed.tolist()
+
+                        # Ensure query_embed is a single vector
+                        if isinstance(query_embed[0], list):
+                            query_embed = query_embed[0]
+
+                        qdrant_url = f"http://{Qdrant_config['host']}:{Qdrant_config['port']}"
+                        client = QdrantClient(url=qdrant_url, check_compatibility=False)
+
+                        result = client.search(
+                            collection_name=collection_name, query_vector=query_embed, limit=10
+                        )
+
+                        return result, texts
+                  language: python3
+                  input_transforms:
+                    texts:
+                      expr: flow_input.Question
+                      type: javascript
+                    config:
+                      expr: flow_input.RAG_Config
+                      type: javascript
+                    model_name:
+                      type: static
+                      value: mbert.qry.backend-python
+                    Qdrant_config:
+                      expr: flow_input.Qdrant_Config
+                      type: javascript
+                    collection_name:
+                      type: static
+                      value: default_lumir
+                summary: Retrieve
+              - id: c
+                value:
+                  lock: |-
+                    # py: 3.11
+                    aiohappyeyeballs==2.6.1
+                    aiohttp==3.12.15
+                    aiosignal==1.4.0
+                    annotated-types==0.7.0
+                    anyio==4.10.0
+                    attrdict==2.0.1
+                    attrs==25.3.0
+                    boto3==1.40.3
+                    botocore==1.40.3
+                    brotli==1.1.0
+                    certifi==2025.8.3
+                    charset-normalizer==3.4.2
+                    filelock==3.18.0
+                    frozenlist==1.7.0
+                    fsspec==2025.7.0
+                    gevent==25.5.1
+                    geventhttpclient==2.3.4
+                    greenlet==3.2.3
+                    grpcio==1.67.1
+                    h11==0.16.0
+                    h2==4.2.0
+                    hf-xet==1.1.7
+                    hpack==4.1.0
+                    httpcore==1.0.9
+                    httpx==0.28.1
+                    huggingface-hub==0.34.3
+                    hyperframe==6.1.0
+                    idna==3.10
+                    jmespath==1.0.1
+                    multidict==6.6.3
+                    numpy==2.2.4
+                    packaging==25.0
+                    portalocker==3.2.0
+                    propcache==0.3.2
+                    protobuf==5.29.5
+                    pydantic==2.11.7
+                    pydantic-core==2.33.2
+                    python-dateutil==2.9.0.post0
+                    python-rapidjson==1.21
+                    pyyaml==6.0.2
+                    qdrant-client==1.15.1
+                    regex==2025.7.34
+                    requests==2.32.4
+                    s3transfer==0.13.1
+                    safetensors==0.5.3
+                    setuptools==80.9.0
+                    six==1.17.0
+                    sniffio==1.3.1
+                    tokenizers==0.21.4
+                    tqdm==4.67.1
+                    transformers==4.55.0
+                    trism @ git+https://github.com/hieupth/trism@d34acfa6e3f166c28eb7f907fea4f441c90255e0
+                    tritonclient==2.59.0
+                    typing-extensions==4.14.1
+                    typing-inspection==0.4.1
+                    urllib3==2.5.0
+                    wmill==1.518.2
+                    yarl==1.20.1
+                    zope-event==5.1.1
+                    zope-interface==7.2
+                  type: rawscript
+                  assets: []
+                  content: >
+                    # requirements:
+
+                    # tritonclient[http]
+
+                    # tritonclient[grpc]
+
+                    # gevent
+
+                    # git+https://github.com/hieupth/trism
+
+                    # grpcio
+
+                    # httpx
+
+                    # transformers
+
+                    # numpy==2.2.4
+
+                    # attrdict
+
+                    # boto3
+
+                    # qdrant_client
+
+                    # wmill
+
+
+                    import tritonclient.http as httpclient
+
+                    import tritonclient.grpc as grpcclient
+
+                    from trism import TritonModel
+
+                    import numpy as np
+
+                    from typing import List, Dict
+
+                    from qdrant_client import QdrantClient
+
+                    import wmill
+
+                    import json
+
+
+
+                    def reranking(
+                        query: str,
+                        contexts: List[str],
+                        config: Dict,
+                        model_name: str,
+                    ):
+                        bls = TritonModel(
+                            model=model_name,
+                            version=config["version"],
+                            url=config["url"],
+                            grpc=config["grpc"],
+                        )
+
+                        query_np = np.array([query.encode("utf-8")], dtype=object)
+                        context_np = np.array([c.encode("utf-8") for c in contexts], dtype=object)
+
+                        bls_result = bls.run(data=[query_np, context_np])
+
+                        bls_logits = bls_result["logits"]
+                        score_bls = bls_logits.reshape(-1).tolist()
+                        return score_bls
+
+
+                    def main(
+                        query: str,
+                        chunks_list,
+                        config: Dict,
+                        model_rerank: str = "mbert.rerank.backend-python",
+                        rerank: bool = False,
+                    ):
+                        if not chunks_list:
+                            return []
+
+                        if not rerank:
+                            print(chunks_list)
+                            return chunks_list
+
+                        scores = []
+                        for chunk in chunks_list:
+                            if hasattr(chunk, "payload") and "chunk" in chunk.payload:
+                                context = [chunk.payload["chunk"]]
+                                score = reranking(query, context, model_rerank, config)
+                                scores.append(score[0])
+                            else:
+                                scores.append(0.0)
+
+                        sorted_chunks = sorted(zip(chunks_list, scores), key=lambda x: x[1], reverse=True)
+                        list_chunks = [chunk for chunk, score in sorted_chunks]
+                        print(list_chunks)
+                        return list_chunks
+                  language: python3
+                  input_transforms:
+                    query:
+                      expr: flow_input.Question
+                      type: javascript
+                    config:
+                      expr: flow_input.RAG_Config
+                      type: javascript
+                    rerank:
+                      expr: flow_input.rerank
+                      type: javascript
+                    chunks_list:
+                      expr: results.b
+                      type: javascript
+                    model_rerank:
+                      type: static
+                      value: mbert.rerank.backend-python
+                summary: Rerank
+                continue_on_error: false
+            summary: Not Upload
+            parallel: true
+            skip_failure: false
+          - expr: "false"
+            modules:
+              - id: o
+                value:
+                  lock: |-
+                    # py: 3.11
+                    pytz==2025.2
+                  type: rawscript
+                  assets: []
+                  content: >
+                    from datetime import datetime
+
+                    import pytz
+
+                    from typing import Dict, Optional
+
+
+
+                    # Modify logic for numerology calculate
+
+                    def calculate_personal_number(dob: str, current_date: str =
+                    None) -> Dict:
+                        """
+                        Calculate personal's numerology base on day of birth and current datetime.
+
+                        Args:
+                            dob (str): Day of birth in "dd/mm/YYYY".
+                            current_date (str, optional): Current date in "dd/mm/YYYY".
+                                                          Default is None. If None, current date will be used.
+
+                        Returns:
+                            Dict: Personal's numerology.
+                        """
+
+                        fail = []
+
+                        if dob == "":
+                            return fail
+
+                        try:
+                            dob_date = datetime.strptime(dob, "%d/%m/%Y")
+                        except ValueError:
+                            raise ValueError("Day of birth must be in 'dd/mm/yyyy'")
+
+                        if current_date is None:  # If None, set current date based on Vietnam's timezone
+                            vntz = pytz.timezone("Asia/Ho_Chi_Minh")
+                            current_datetime = datetime.now(vntz)
+                        else:
+                            current_datetime = datetime.strptime(current_date, "%d/%m/%Y")
+
+                        total_sum = (
+                            dob_date.day
+                            + dob_date.month
+                            + current_datetime.year
+                            + current_datetime.month
+                            + current_datetime.day
+                        )
+                        personal_year = dob_date.day + dob_date.month + current_datetime.year
+                        lifepath_number = dob_date.day + dob_date.month + dob_date.year
+
+                        # Check if current date passed day of birth or not
+                        # If passed minus 1
+                        if dob_date.month > current_datetime.month or (
+                            dob_date.month == current_datetime.month and dob_date.day > current_datetime.day
+                        ):
+                            total_sum -= 1
+                            personal_year -= 1
+
+                        # Sum each digits in each field to get correspond
+                        while total_sum > 9:
+                            total_sum = sum(int(digit) for digit in str(total_sum))
+
+                        while personal_year > 9:
+                            personal_year = sum(int(digit) for digit in str(personal_year))
+
+                        personal_day = total_sum
+                        personal_month = personal_year + current_datetime.month
+
+                        while personal_month > 9:
+                            personal_month = sum(int(digit) for digit in str(personal_month))
+
+                        while lifepath_number > 9:
+                            lifepath_number = sum(int(digit) for digit in str(lifepath_number))
+
+                        result = {
+                            "ngay_sinh": dob_date.strftime("%d/%m/%Y"),
+                            "thoi_gian_hien_tai": current_datetime.strftime("%d/%m/%Y %H:%M"),
+                            "so_chu_dao": lifepath_number,
+                            "nam_ca_nhan": personal_year,
+                            "thang_ca_nhan": personal_month,
+                            "ngay_ca_nhan": personal_day,
+                        }
+                        return result
+
+
+                    def main(birth_data: str, current_date: Optional = None):
+                        try:
+                            numerology_numbers = calculate_personal_number(birth_data, current_date)
+                        except ValueError as e:
+                            return {"error": f"Lỗi ngày sinh: {str(e)}"}
+
+                        return numerology_numbers
+                  language: python3
+                  input_transforms:
+                    birth_data:
+                      expr: flow_input.birthday
+                      type: javascript
+                    current_date:
+                      type: static
+                      value: null
+                skip_if:
+                  expr: flow_input.birthday==""
+                summary: Numerology Calculate
+                continue_on_error: false
+              - id: p
+                value:
+                  lock: |-
+                    # py: 3.11
+                    anyio==4.10.0
+                    boto3==1.40.6
+                    botocore==1.40.6
+                    certifi==2025.8.3
+                    h11==0.16.0
+                    httpcore==1.0.9
+                    httpx==0.28.1
+                    idna==3.10
+                    jmespath==1.0.1
+                    lxml==6.0.0
+                    python-dateutil==2.9.0.post0
+                    python-docx==1.2.0
+                    s3transfer==0.13.1
+                    six==1.17.0
+                    sniffio==1.3.1
+                    typing-extensions==4.14.1
+                    urllib3==2.5.0
+                    wmill==1.520.1
+                  type: rawscript
+                  assets: []
+                  content: |
+                    # # import wmill
+                    # # boto3
+
+                    # import json
+                    # import wmill
+                    # import boto3
+                    # from io import BytesIO
+                    # from docx import Document
+                    # from sentence_transformers import SentenceTransformer, util
+                    # from langchain.text_splitter import RecursiveCharacterTextSplitter
+                    # from botocore.client import Config
+                    # from typing import Dict, Any, List
+
+                    # # Configuration for S3 client
+                    # try:
+                    #     s3_config = json.loads(wmill.get_variable("u/sktkctman2/s3_storage_config"))
+                    #     s3 = boto3.client(
+                    #         "s3",
+                    #         aws_access_key_id=s3_config["access_key_id"],
+                    #         aws_secret_access_key=s3_config["secret_access_key"],
+                    #         region_name=s3_config["region_name"],
+                    #         endpoint_url=s3_config["endpoint_url"],
+                    #         config=Config(s3={"addressing_style": "virtual"}),
+                    #     )
+                    # except Exception as e:
+                    #     # Fallback
+                    #     print(f"Lỗi khi lấy cấu hình S3: {e}")
+                    #     s3 = None
+
+
+                    # def get_document_text_for_numerology(
+                    #     number_type: str, number: int, bucket_name: str
+                    # ) -> str:
+                    #     """
+                    #     Tải file từ S3 dựa trên loại số (chủ đạo hoặc cá nhân) và giá trị số.
+                    #     """
+                    #     if number_type == "so_chu_dao":
+                    #         folder = "personal-number"
+                    #         file_name = f"so-ca-nhan-{number}.docx"
+                    #     elif number_type == "ngay_ca_nhan":
+                    #         folder = "personal_day_data"
+                    #         file_name = f"ngay-ca-nhan-so-{number}.docx"
+                    #     else:
+                    #         raise ValueError(f"Loại số '{number_type}' không hợp lệ.")
+
+                    #     file_key = f"{folder}/{file_name}"
+
+                    #     if s3 is None:
+                    #         raise ValueError("S3 client không được khởi tạo.")
+
+                    #     try:
+                    #         obj = s3.get_object(Bucket=bucket_name, Key=file_key)
+                    #         file_content = obj["Body"].read()
+                    #         doc = Document(BytesIO(file_content))
+                    #         text = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
+                    #         return text
+                    #     except Exception as e:
+                    #         raise ValueError(f"Lỗi tải file '{file_key}' từ S3: {str(e)}")
+
+
+                    # def retrieve_and_rerank(query: str, document_text: str, top_k: int = 3) -> list[str]:
+                    #     """
+                    #     SIÊU ĐƠN GIẢN: Chỉ embed 1 document, tìm top chunks.
+                    #     """
+                    #     # Tối ưu 1: Chunk size lớn hơn để ít chunks hơn
+                    #     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+                    #     chunks = text_splitter.split_text(document_text)
+
+                    #     # Tối ưu 2: Nếu doc nhỏ, chỉ lấy top chunks đầu tiên
+                    #     if len(chunks) > 15:
+                    #         chunks = chunks[:15]  # Chỉ lấy 15 chunks đầu tiên
+
+                    #     print(f"Processing {len(chunks)} chunks...")
+
+                    #     # Tối ưu 3: Load model nhẹ hơn hoặc quantized
+                    #     model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
+                    #     # Tối ưu 4: Embed tất cả cùng lúc
+                    #     all_texts = [query] + chunks
+                    #     embeddings = model.encode(all_texts, batch_size=16)
+
+                    #     query_embedding = embeddings[0:1]
+                    #     chunk_embeddings = embeddings[1:]
+
+                    #     # Similarity search
+                    #     scores = util.dot_score(query_embedding, chunk_embeddings)[0]
+
+                    #     # Get top k
+                    #     top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[
+                    #         :top_k
+                    #     ]
+                    #     top_chunks = [chunks[idx] for idx in top_indices]
+
+                    #     return top_chunks
+
+
+                    # def main(
+                    #     numerology_numbers: dict, bucket_name: str = "windmill-trung"
+                    # ) -> Dict[str, Any]:
+                    #     """
+                    #     ĐƠN GIẢN: Xử lý từng số một, load doc → embed → rerank → done.
+                    #     """
+                    #     queries = {
+                    #         "so_chu_dao": "Đưa ra lời khuyên về trading liên quan đến số chủ đạo này",
+                    #         "ngay_ca_nhan": "Cung cấp thông tin thần số học liên quan đến trading với ngày cá nhân hôm nay",
+                    #     }
+
+                    #     if not numerology_numbers:
+                    #         return {"error": "Dữ liệu đầu vào không đầy đủ."}
+
+                    #     final_results = {}
+
+                    #     # XỬ LÝ TỪNG SỐ MỘT - ĐƠN GIẢN
+                    #     for query_key, query_text in queries.items():
+                    #         print(f"=== Đang xử lý {query_key} ===")
+
+                    #         try:
+                    #             # 1. Lấy số
+                    #             number = numerology_numbers.get(query_key)
+                    #             if number is None:
+                    #                 final_results[query_key] = {
+                    #                     "error": f"Không tìm thấy giá trị số cho '{query_key}'"
+                    #                 }
+                    #                 continue
+
+                    #             print(f"Số {query_key}: {number}")
+
+                    #             # 2. Tải 1 document duy nhất cho số này
+                    #             print("Đang tải document...")
+                    #             document_text = get_document_text_for_numerology(
+                    #                 query_key, number, bucket_name
+                    #             )
+                    #             print(f"Document loaded: {len(document_text)} ký tự")
+
+                    #             # 3. Embed + rerank CHỈ document này
+                    #             print("Đang embedding và rerank...")
+                    #             retrieve_results = retrieve_and_rerank(query_text, document_text)
+
+                    #             final_results[query_key] = retrieve_results
+                    #             print(f"Hoàn thành {query_key}")
+
+                    #         except Exception as e:
+                    #             print(f"Lỗi {query_key}: {str(e)}")
+                    #             final_results[query_key] = {"error": f"Lỗi xử lý '{query_key}': {str(e)}"}
+
+                    #     print("=== HOÀN THÀNH TẤT CẢ ===")
+                    #     return final_results
+
+                    # import wmill
+                    # boto3
+
+                    import json
+                    import wmill
+                    import boto3
+                    from io import BytesIO
+                    from docx import Document
+                    from botocore.client import Config
+                    from typing import Dict, Any
+
+                    # Configuration for S3 client
+                    try:
+                        s3_config = json.loads(wmill.get_variable("u/sktkctman2/s3_storage_config"))
+                        s3 = boto3.client(
+                            "s3",
+                            aws_access_key_id=s3_config["access_key_id"],
+                            aws_secret_access_key=s3_config["secret_access_key"],
+                            region_name=s3_config["region_name"],
+                            endpoint_url=s3_config["endpoint_url"],
+                            config=Config(s3={"addressing_style": "virtual"}),
+                        )
+                    except Exception as e:
+                        # Fallback
+                        print(f"Lỗi khi lấy cấu hình S3: {e}")
+                        s3 = None
+
+
+                    def get_document_text_for_numerology(
+                        number_type: str, number: int, bucket_name: str
+                    ) -> str:
+                        """
+                        Tải file từ S3 dựa trên loại số (chủ đạo hoặc cá nhân) và giá trị số.
+
+                        Args:
+                            number_type (str): Loại số, ví dụ 'so_chu_dao' hoặc 'ngay_ca_nhan'.
+                            number (int): Giá trị số.
+                            bucket_name (str): Tên bucket S3.
+
+                        Returns:
+                            str: Nội dung văn bản của tài liệu.
+                        """
+                        # Fix: Hoán đổi tên thư mục và tên file để khớp với logic và key S3
+                        if number_type == "nam_ca_nhan":
+                            folder = "personal_year"
+                            file_name = f"nam-ca-nhan-{number}.docx"
+                        elif number_type == "ngay_ca_nhan":
+                            folder = "personal_day_data"
+                            file_name = (
+                                f"ngay-ca-nhan-so-{number}.docx"  # Đã sửa tên file để khớp với key của bạn
+                            )
+                        else:
+                            raise ValueError(f"Loại số '{number_type}' không hợp lệ.")
+
+                        file_key = f"{folder}/{file_name}"
+
+                        if s3 is None:
+                            raise ValueError("S3 client không được khởi tạo.")
+
+                        try:
+                            obj = s3.get_object(Bucket=bucket_name, Key=file_key)
+                            file_content = obj["Body"].read()
+                            doc = Document(BytesIO(file_content))
+
+                            text = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
+                            return text
+                        except Exception as e:
+                            raise ValueError(f"Lỗi tải file '{file_key}' từ S3: {str(e)}")
+
+
+                    def main(
+                        numerology_numbers: dict, bucket_name: str = "windmill-trung"
+                    ) -> Dict[str, Any]:
+                        """
+                        Hàm chính đơn giản: Lấy toàn bộ nội dung file thay vì chunk + embedding.
+
+                        Args:
+                            numerology_numbers (dict): Dictionary chứa các số thần số học.
+                            bucket_name (str): Tên bucket S3 chứa tài liệu.
+
+                        Returns:
+                            Dict[str, Any]: Dictionary chứa toàn bộ nội dung file cho mỗi số.
+                        """
+                        result = []
+
+                        if not numerology_numbers:
+                            # return {"error": "Dữ liệu đầu vào không đầy đủ (numerology_numbers bị thiếu)."}
+                            return result
+
+                        final_results = {}
+
+                        # Xử lý từng loại số
+                        for number_type in ["nam_ca_nhan", "ngay_ca_nhan"]:
+                            try:
+                                print(f"Đang xử lý {number_type}...")
+
+                                # Lấy giá trị số tương ứng từ numerology_numbers
+                                number = numerology_numbers.get(number_type)
+                                if number is None:
+                                    final_results[number_type] = {
+                                        "error": f"Không tìm thấy giá trị số cho '{number_type}' trong dữ liệu."
+                                    }
+                                    continue
+
+                                # Tải toàn bộ nội dung tài liệu
+                                document_text = get_document_text_for_numerology(
+                                    number_type, number, bucket_name
+                                )
+
+                                # Trả về toàn bộ nội dung thay vì chunk và rerank
+                                final_results[number_type] = document_text
+
+                                print(f"Hoàn thành {number_type}: {len(document_text)} ký tự")
+
+                            except Exception as e:
+                                # Xử lý lỗi cụ thể cho từng loại số
+                                print(f"Lỗi xử lý {number_type}: {str(e)}")
+                                final_results[number_type] = {
+                                    "error": f"Lỗi xử lý cho '{number_type}': {str(e)}"
+                                }
+
+                        print("Hoàn thành tất cả!")
+                        return final_results
+                  language: python3
+                  input_transforms:
+                    bucket_name:
+                      type: static
+                      value: windmill-trung
+                    numerology_numbers:
+                      expr: results.o
+                      type: javascript
+                summary: Retrieve & Rerank
+                continue_on_error: false
+            summary: Birthday
+            parallel: true
+            skip_failure: false
+        parallel: true
+      summary: ""
+    - id: k
+      value:
+        lock: |
+          # py: 3.11
+        type: rawscript
+        assets: []
+        content: >
+          # import wmill
+
+
+
+          import re
+
+          from typing import List, Dict, Any, Optional, Tuple, Union
+
+
+
+          def parse_context_item(context_str: str) -> Dict[str, Any]:
+              """
+              Parse a context string to extract id, score, and payload information.
+
+              Args:
+                  context_str: String representation of context item
+
+              Returns:
+                  Dictionary containing parsed information
+              """
+              try:
+                  # Extract ID
+                  id_match = re.search(r"id='([^']+)'", context_str)
+                  context_id = id_match.group(1) if id_match else ""
+
+                  # Extract score
+                  score_match = re.search(r"score=([0-9.]+)", context_str)
+                  score = float(score_match.group(1)) if score_match else 0.0
+
+                  # Extract payload
+                  payload_match = re.search(r"payload=({[^}]+})", context_str)
+                  payload_str = payload_match.group(1) if payload_match else "{}"
+
+                  # Parse payload more carefully
+                  payload = {}
+                  if payload_match:
+                      payload_content = payload_match.group(1)
+                      # Extract text content
+                      text_match = re.search(r"'text': '([^']*(?:\\'[^']*)*)'", payload_content)
+                      if text_match:
+                          payload["text"] = text_match.group(1).replace("\\'", "'")
+
+                      # Extract filename
+                      filename_match = re.search(r"'filename': '([^']+)'", payload_content)
+                      if filename_match:
+                          payload["filename"] = filename_match.group(1)
+
+                      # Extract other fields
+                      for field in [
+                          "chunk_index",
+                          "document_id",
+                          "file_type",
+                          "session_id",
+                          "user_id",
+                          "custom_metadata",
+                      ]:
+                          field_match = re.search(rf"'{field}': '?([^',}}]+)'?", payload_content)
+                          if field_match:
+                              value = field_match.group(1).strip("'\"")
+                              payload[field] = (
+                                  int(value)
+                                  if field == "chunk_index" and value.isdigit()
+                                  else value
+                              )
+
+                  return {
+                      "id": context_id,
+                      "score": score,
+                      "payload": payload,
+                      "original_string": context_str,
+                  }
+              except Exception as e:
+                  print(f"Error parsing context item: {e}")
+                  return {
+                      "id": "",
+                      "score": 0.0,
+                      "payload": {"text": context_str},
+                      "original_string": context_str,
+                  }
+
+
+          def merge_and_select_contexts(
+              context_has_upload: Optional[List[str]] = None,
+              context_not_upload: Optional[List[Union[List[str], str]]] = None,
+              top_k: int = 3,
+          ) -> Tuple[List[Dict[str, Any]], str]:
+              """
+              Merge contexts from uploaded and non-uploaded sources, select top K by score.
+
+              Args:
+                  context_has_upload: List of context strings from uploaded documents (can be None or empty)
+                  context_not_upload: List containing context items and source info (always has value)
+                  top_k: Number of top contexts to return (default: 5)
+
+              Returns:
+                  Tuple of (selected_contexts, source_info)
+              """
+              all_contexts = []
+              source_info = ""
+
+              # Handle context_not_upload (always has value)
+              if context_not_upload:
+                  if len(context_not_upload) >= 2:
+                      context_items = context_not_upload[0]  # List of context strings
+                      source_info = context_not_upload[1]  # Source information
+
+                      if isinstance(context_items, list):
+                          for item in context_items:
+                              if isinstance(item, str):
+                                  parsed_item = parse_context_item(item)
+                                  parsed_item["source"] = "not_upload"
+                                  all_contexts.append(parsed_item)
+
+              # Handle context_has_upload (can be None or empty)
+              if context_has_upload:
+                  for item in context_has_upload:
+                      if isinstance(item, str):
+                          parsed_item = parse_context_item(item)
+                          parsed_item["source"] = "has_upload"
+                          all_contexts.append(parsed_item)
+
+              # If no contexts found, return empty
+              if not all_contexts:
+                  return [], source_info
+
+              # Case 1: Only context_not_upload
+              if not context_has_upload or len(context_has_upload) == 0:
+                  # Return all contexts from not_upload (or top_k if more than top_k)
+                  selected_contexts = (
+                      all_contexts[:top_k] if len(all_contexts) > top_k else all_contexts
+                  )
+                  return selected_contexts, source_info
+
+              # Case 2: Both contexts exist - merge and select top K by score
+              # Sort by score in descending order (higher score = better match)
+              all_contexts.sort(key=lambda x: x["score"], reverse=True)
+
+              # Select top K contexts
+              selected_contexts = all_contexts[:top_k]
+
+              return selected_contexts, source_info
+
+
+          def format_contexts_for_display(
+              contexts: List[Dict[str, Any]], source_info: str = ""
+          ) -> str:
+              """
+              Format the selected contexts for display or further processing.
+
+              Args:
+                  contexts: List of selected context dictionaries
+                  source_info: Source information string
+
+              Returns:
+                  Formatted string representation
+              """
+              if not contexts:
+                  return "No contexts available."
+
+              formatted_output = []
+
+              if source_info:
+                  formatted_output.append(f"Source: {source_info}")
+                  formatted_output.append("-" * 50)
+
+              for i, context in enumerate(contexts, 1):
+                  formatted_output.append(
+                      f"Context {i} (Score: {context['score']:.6f}, Source: {context['source']}):"
+                  )
+
+                  # Display text content
+                  text_content = context["payload"].get("text", "No text available")
+                  formatted_output.append(f"Text: {text_content}")
+
+                  # Display filename if available
+                  filename = context["payload"].get("filename", "Unknown file")
+                  formatted_output.append(f"File: {filename}")
+
+                  formatted_output.append("-" * 30)
+
+              return "\n".join(formatted_output)
+
+
+          def main(context_has_upload, context_not_upload, doc_birthday,
+          has_upload):
+              if has_upload == True:
+                  context_has_upload = context_has_upload
+              else:
+                  context_has_upload = None
+
+              selected_contexts, source = merge_and_select_contexts(
+                  context_has_upload=context_has_upload,
+                  context_not_upload=context_not_upload,
+                  top_k=3,
+              )
+              return selected_contexts, source, doc_birthday
+        language: python3
+        input_transforms:
+          has_upload:
+            expr: flow_input.Upload
+            type: javascript
+          doc_birthday:
+            expr: results.p
+            type: javascript
+          context_has_upload:
+            expr: results.e[0]
+            type: javascript
+          context_not_upload:
+            expr: results.e[1]
+            type: javascript
+      summary: Combine context
+    - id: l
+      value:
+        lock: |-
+          # py: 3.11
+          annotated-types==0.7.0
+          anyio==4.10.0
+          certifi==2025.8.3
+          charset-normalizer==3.4.3
+          distro==1.9.0
+          h11==0.16.0
+          httpcore==1.0.9
+          httpx==0.28.1
+          idna==3.10
+          jiter==0.10.0
+          openai==1.99.6
+          pydantic==2.11.7
+          pydantic-core==2.33.2
+          requests==2.32.4
+          sniffio==1.3.1
+          tqdm==4.67.1
+          typing-extensions==4.14.1
+          typing-inspection==0.4.1
+          urllib3==2.5.0
+          wmill==1.520.1
+        type: rawscript
+        assets: []
+        content: >
+          # requirements
+
+          # langchain-core
+
+          # langchain
+
+          # openai
+
+          # requests
+
+
+          import wmill
+
+          import json
+
+          import requests
+
+          import re
+
+          from openai import OpenAI
+
+          from typing import List, Dict, Any, Optional, Tuple
+
+
+          # OpenAI config
+
+          # data = json.loads(wmill.get_variable("u/sktkctman2/nvidia"))
+
+          # print(f"URL: {data.get('base_url')}\nAPI_KEY:
+          {data.get('api_key')}")
+
+          # client = OpenAI(base_url=data.get("base_url", ""),
+          api_key=data.get("api_key", ""))
+
+          client = OpenAI(
+              base_url="https://af4feace2508.ngrok-free.app/v1", api_key="abc123"
+          )  # Local model api
+
+
+          # System prompt with placeholder {language} for multi language
+
+          SYSTEM_PROMPT_TEMPLATE = """\
+
+          You are **LUMIR-AI** - a personal trading coach and executive
+          secretary specialized in Financial trading (stocks, crypto, forex,
+          derivatives, risk management). Your goal is to guide and empower users
+          to make informed trading decisions.
+
+
+          Guidelines:
+
+          - **MUST** answer ONLY in polite {language}.
+
+          - **Adopt a coaching tone:** Be confident, encouraging, and
+          authoritative. Guide the user through the process, don't just state
+          facts.
+
+          - **Provide actionable advice:** Translate context into concrete,
+          practical steps the user can take.
+
+          - **Use real-world examples:** Illustrate your points with clear
+          examples (e.g., "Ví dụ, nếu bạn thấy một tín hiệu phân kỳ dương trên
+          RSI, đó có thể là dấu hiệu cho một đợt tăng giá ngắn hạn.")
+
+          - **Cite brief reasoning:** Explain the 'why' behind your advice
+          (e.g., "technical indicator", "market trend").
+
+          - **Integrate numerology subtly:** When numerology context is
+          available, weave its themes into your advice naturally, but **NEVER**
+          directly mention numerology in your answer.
+
+          - **Rememeber** that your are a professional trading coach.
+
+          - **Refuse dangerous requests:** Reject requests for guaranteed
+          profits, inside information, or lottery numbers.
+
+          - **Base your answer on provided context:** Use the context as your
+          source of information, but expand on it with your expertise and
+          examples.
+
+          - **Use bullet points or numbered lists:** Structure your advice
+          clearly for easy reading.
+
+          """
+
+
+
+          # Replace personal nemerology term
+
+          def replace_num(van_ban: str) -> str:
+              pattern1 = r"(năm|ngày)\s*(cá nhân)?\s*(số)?\s*\d+"
+              replacement1 = r"\1 này"
+
+              pattern2 = r"\b(số)\s*\d+"
+              replacement2 = r"này"
+
+              new_term = re.sub(pattern1, replacement1, van_ban, flags=re.IGNORECASE)
+              new_term = re.sub(pattern2, replacement2, new_term, flags=re.IGNORECASE)
+
+              return new_term
+
+
+          def format_context_for_prompt(
+              contexts: List[Dict[str, Any]], source_info: str = ""
+          ) -> str:
+              if not contexts:
+                  return ""
+              context_parts = []
+              if source_info:
+                  context_parts.append(f"Nguồn thông tin: {source_info}")
+                  context_parts.append("-" * 40)
+              for i, context in enumerate(contexts, 1):
+                  text_content = context["payload"].get("text", "")
+                  filename = context["payload"].get("filename", "Unknown")
+                  context_parts.append(f"Context {i} (từ {filename}):")
+                  context_parts.append(text_content)
+                  context_parts.append("")
+              return "\n".join(context_parts)
+
+
+          def format_birthday_context_for_subconscious(
+              doc_birthday: Optional[Dict],
+              language: str,
+              # personal_year: str = "",
+              # personal_day: str = "",
+          ) -> str:
+              if not doc_birthday:
+                  return ""
+
+              subconscious_info = (
+                  "You are a good friend for trader, please answer in friendly tone."
+              )
+
+              if language == "Vietnamese":
+                  starter_phrase = (
+                      "Dựa trên phân tích chuyên sâu của tôi, tôi có một vài lời khuyên cho bạn."
+                  )
+              else:
+                  starter_phrase = "Based on my in-depth analysis, I have some advice for you."
+
+              instructions = f"""
+          - Use the following subconscious info to personalize responses subtly
+          and briefly.
+
+          - **ALWAYS** start your response with a strong, guiding phrase like:
+          "{starter_phrase}" to set a coaching tone.
+
+          - Refer indirectly using generic phrases and themes. For example,
+          instead of "Your Personal Year 9", use phrases like "this period of
+          completion" or "this cycle".
+
+          - Incorporate these themes into your advice as a professional would.
+          For example, if the theme is "consolidation", provide a strategy like
+          "focus on risk management by reducing open positions and re-evaluating
+          your portfolio."
+
+          - Responses must be based on context, but respond naturally and
+          directly to the question as a coach would.
+
+          - REMINDER: End your response with a wish or good luck message.
+
+          """
+
+              return instructions + subconscious_info
+
+
+          dump_instructions_vi = """
+
+          - Use the following subconscious info to personalize responses subtly
+          and briefly.
+
+          - **ALWAYS** start your response with a strong, guiding phrase like:
+          "Dựa trên phân tích chuyên sâu, giai đoạn này là thời điểm then chốt
+          để bạn..."
+
+          - Refer indirectly using generic phrases and themes. For example,
+          instead of "Your Personal Year 9", use phrases like "this period of
+          completion" or "this cycle".
+
+          - Incorporate these themes into your advice as a professional would.
+          For example, if the theme is "consolidation", provide a strategy like
+          "focus on risk management by reducing open positions and re-evaluating
+          your portfolio."
+
+          - Responses must be based on context, but respond naturally and
+          directly to the question as a coach would.
+
+          - Use real-world examples to illustrate your points.
+
+          - REMINDER: End your response with a wish or good luck message.
+
+          - Base on this context:
+
+          ###
+
+          Giai đoạn hiện tại là một thời điểm quan trọng trong chu kỳ của một
+          trader, đánh dấu sự kết thúc và hoàn thiện. Đây là lúc để bạn nhìn
+          lại, đánh giá, buông bỏ những thói quen xấu và chuẩn bị cho một chu kỳ
+          mới. Các chủ đề chính trong giai đoạn này bao gồm việc hoàn thiện các
+          dự án dang dở, buông bỏ các chiến lược không hiệu quả và tổng kết
+          những bài học kinh nghiệm. Về mặt giao dịch, bạn có thể cảm thấy thôi
+          thúc thanh lý các vị thế cũ, đánh giá lại danh mục đầu tư, giảm thiểu
+          rủi ro và hạn chế các cam kết dài hạn mới. Để tận dụng tối đa giai
+          đoạn này, bạn nên tập trung vào việc quản lý danh mục bằng cách thanh
+          lọc các tài sản không phù hợp và mạnh dạn chốt lời/cắt lỗ. Đồng thời,
+          hãy phát triển kỹ năng thông qua việc phân tích nhật ký giao dịch và
+          nghiên cứu thị trường. Về mặt tâm lý, việc thực hành chánh niệm và
+          buông bỏ cảm xúc tiêu cực sẽ giúp bạn duy trì sự bình tĩnh và khách
+          quan. Nhìn chung, đây không phải là thời điểm để đầu tư mạo hiểm mà là
+          để củng cố và chuẩn bị cho những cơ hội mới. Ngoài ra, một ngày cụ thể
+          có thể mang năng lượng của trách nhiệm, sự ổn định, nhưng cũng tiềm ẩn
+          rủi ro giao dịch theo cảm xúc hoặc để chứng minh bản thân. Do đó, lời
+          khuyên cốt lõi là hãy tập trung vào việc học hỏi, trưởng thành và giữ
+          vững kỷ luật, thay vì để áp lực nội tâm chi phối quyết định.
+
+          - Based on this question:
+
+          ###
+
+          Giai đoạn này chiến lược như nào sẽ phù hợp và những điều không nên
+          làm
+
+          """
+
+
+          clone_answer_vi = """
+
+          Dựa trên phân tích chuyên sâu của tôi, giai đoạn này không phải là lúc
+          để mạo hiểm mà là để tái cấu trúc và củng cố nền tảng giao dịch của
+          bạn. Đây là một chu kỳ đòi hỏi sự khôn ngoan và kỷ luật để chuẩn bị
+          cho những cơ hội bứt phá trong tương lai.
+
+
+          #### Những Chiến lược Nên Áp dụng:
+
+
+          * **Tái Đánh Giá Danh Mục Đầu Tư (Portfolio Re-evaluation):** Đây là
+          thời điểm vàng để bạn rà soát lại toàn bộ các vị thế đang nắm giữ. Hãy
+          mạnh dạn thanh lý những tài sản không còn phù hợp với mục tiêu dài hạn
+          hoặc đã đạt mục tiêu lợi nhuận ban đầu. Ví dụ: Nếu bạn đang nắm giữ
+          một cổ phiếu tăng trưởng chậm mà không có triển vọng rõ ràng, hãy cân
+          nhắc chốt lời hoặc cắt lỗ để tái phân bổ vốn vào một lĩnh vực tiềm
+          năng hơn.
+
+          * **Phát Triển Kỹ Năng và Phân Tích Chuyên Sâu:** Hãy tận dụng giai
+          đoạn này để học hỏi và mài giũa kỹ năng. Thay vì chạy theo thị trường,
+          hãy dành thời gian phân tích nhật ký giao dịch của chính mình để tìm
+          ra các mẫu hình thành công hoặc thất bại. Điều này giúp bạn hiểu rõ
+          hơn về điểm mạnh, điểm yếu của bản thân.
+
+          * **Quản Trị Rủi Ro Chặt Chẽ:** Luôn đặt an toàn vốn lên hàng đầu. Hãy
+          siết chặt các nguyên tắc cắt lỗ (stop-loss) và giới hạn mức rủi ro
+          trên mỗi giao dịch. Đây là nguyên tắc cốt lõi giúp bạn sống sót qua
+          những biến động của thị trường.
+
+
+          #### Những Điều Cần Tránh:
+
+
+          * **Giao Dịch Dưới Áp Lực Cảm Xúc (Emotional Trading):** Cảm xúc là kẻ
+          thù lớn nhất của trader. Tránh các giao dịch bộc phát để chứng minh
+          năng lực hoặc cố gắng "gỡ gạc" sau một chuỗi thua lỗ. Hãy luôn hành
+          động dựa trên phân tích khách quan và kỷ luật.
+
+          * **Mạo Hiểm Với Các Giao Dịch Dài Hạn Mới:** Giai đoạn này không phù
+          hợp để bắt đầu các cam kết đầu tư dài hạn mới. Thay vào đó, hãy chờ
+          đợi những tín hiệu rõ ràng từ thị trường và chuẩn bị sẵn sàng khi thời
+          điểm đến.
+
+
+          Hy vọng những lời khuyên này sẽ giúp bạn có một giai đoạn giao dịch
+          hiệu quả và thành công rực rỡ trong chu kỳ tiếp theo! 🌟
+
+          """
+
+
+          dump_instructions_eng = f"""
+
+          - Use the following subconscious info to personalize responses subtly
+          and briefly.
+
+          - **ALWAYS** start your response with a strong, guiding phrase like:
+          "Based on my in-depth analysis, this period is a critical time for you
+          to..."
+
+          - Refer indirectly using generic phrases and themes. For example,
+          instead of "Your Personal Year 9", use phrases like "this period of
+          completion" or "this cycle".
+
+          - Incorporate these themes into your advice as a professional would.
+          For example, if the theme is "consolidation", provide a strategy like
+          "focus on risk management by reducing open positions and re-evaluating
+          your portfolio."
+
+          - Responses must be based on context, but respond naturally and
+          directly to the question as a coach would.
+
+          - Use real-world examples to illustrate your points.
+
+          - REMINDER: End your response with a wish or good luck message.
+
+          - Based on this context:
+              ###
+              The current period is a critical time in a trader's cycle, marking completion and finalization. This is the time to look back, evaluate, let go of what no longer serves your goals, and prepare for a new cycle. The energy of this period emphasizes compassion, summarization, and preparation for new beginnings. The main themes in this phase include completing unfinished projects, letting go of ineffective strategies, and summarizing lessons learned. In terms of trading, you might feel a strong urge to liquidate old positions, re-evaluate your portfolio, minimize risks, and limit new long-term commitments. To make the most of this time, you should focus on portfolio management by filtering out unsuitable assets and decisively taking profits or cutting losses. At the same time, develop your skills by analyzing your trading journal and studying the market. Emotionally, practicing mindfulness and letting go of negative feelings will help you maintain calmness and objectivity. Overall, this is not a time for high-risk investment but for consolidation and preparation for new opportunities. Additionally, a specific day might carry the energy of responsibility and stability, but also the potential risk of emotional trading or trading to prove oneself. Therefore, the core advice is to focus on learning, growth, and maintaining discipline, rather than letting internal pressure dictate decisions.
+          - Based on this question:
+              ###
+              What are suitable strategies and what should be avoided during this period?
+          """
+
+
+          clone_answer_eng = """
+
+          Based on my in-depth analysis, this period is a pivotal time to
+          restructure and refresh your trading strategy. This is not the moment
+          for taking big risks, but rather for building a solid foundation for
+          future opportunities.
+
+
+          ### Suitable Strategies for this Period:
+
+
+          * **Prioritize Stability:** Focus on assets with strong fundamentals.
+          For example, if you're trading stocks, consider blue-chip companies or
+          sectors with long-term prospects instead of highly volatile penny
+          stocks.
+
+          * **Re-evaluate Your Portfolio:** Take the time to thoroughly review
+          your entire investment portfolio. Liquidate ineffective positions and
+          take profits on those that have reached their targets. This is how you
+          "clean house" and prepare for new opportunities.
+
+          * **Enhance Your Skills:** Review your trading journal and look for
+          recurring patterns. Analyze what went right and what went wrong to
+          learn valuable lessons. This helps you grow both psychologically and
+          professionally.
+
+          * **Strict Risk Management:** This is a golden opportunity to tighten
+          your risk management principles. Set stop-loss orders with discipline
+          and never trade with money you're not prepared to lose.
+
+
+          ### What You Should Avoid:
+
+
+          * **Emotional Trading:** Avoid trading under pressure from FOMO (fear
+          of missing out) or trying to chase losses. Always act based on
+          objective analysis. For example, if you feel the urge to trade because
+          the market is running hot, take 15 minutes to review your technical
+          indicators before making a decision.
+
+          * **High-Risk Investments:** This period is not suitable for high-risk
+          investments. Be patient and wait for clear signals instead of jumping
+          into trades with a low probability of success.
+
+
+          I hope this guidance helps you have a productive trading period.
+          Wishing you continued success in the market! 🌟
+
+          """
+
+
+
+          def generate_response_with_context(
+              question: str,
+              language: str = "Vietnamese",
+              contexts: List[Dict[str, Any]] = None,
+              source_info: str = "",
+              temperature: float = 0.6,
+              max_tokens: int = 5000,
+              history: List[Tuple[str, str]] = None,
+              doc_birthday: Optional[Dict] = None,
+              model_name: str = "gemma3-12b-4bit",
+          ) -> str:
+              system_prompt = SYSTEM_PROMPT_TEMPLATE.format(language=language)
+
+              # Concat system + subconscious
+              merged_system = system_prompt
+              if doc_birthday:
+                  subconscious = format_birthday_context_for_subconscious(doc_birthday, language)
+                  if subconscious:
+                      merged_system += "\n\n" + subconscious
+
+              # Build the final prompt with context and question
+              prompt_parts = []
+              if contexts:
+                  formatted_context = format_context_for_prompt(contexts, source_info)
+                  if formatted_context:
+                      prompt_parts.append("=== REFERENCE INFORMATION ===")
+                      prompt_parts.append(formatted_context)
+                      prompt_parts.append("=== END REFERENCE INFORMATION ===")
+
+              if doc_birthday:
+                  nam_ca_nhan_contexts = replace_num(doc_birthday.get("nam_ca_nhan", []))
+                  ngay_ca_nhan_contexts = replace_num(doc_birthday.get("ngay_ca_nhan", []))
+                  if nam_ca_nhan_contexts or ngay_ca_nhan_contexts:
+                      personal_info = []
+                      if nam_ca_nhan_contexts:
+                          personal_info.append(
+                              "Personal number info: " + "\n".join(nam_ca_nhan_contexts)
+                          )
+                      if ngay_ca_nhan_contexts:
+                          personal_info.append(
+                              "Personal day info: " + "\n".join(ngay_ca_nhan_contexts)
+                          )
+                      prompt_parts.append("=== PERSONAL NUMEROLOGY CONTEXT ===")
+                      prompt_parts.append("\n".join(personal_info))
+                      prompt_parts.append("=== END PERSONAL NUMEROLOGY CONTEXT ===")
+
+              prompt_parts.append(
+                  f"Respond ONLY in {language}. Base your answer on the provided context and subconscious profile."
+              )
+              prompt_parts.append(f"User question: {question}")
+              final_prompt = "\n".join(prompt_parts)
+
+              # Select few-shot prompt based on language
+              if language == "Vietnamese":
+                  dump_instructions = dump_instructions_vi
+                  clone_answer = clone_answer_vi
+              else:
+                  dump_instructions = dump_instructions_eng
+                  clone_answer = clone_answer_eng
+
+              messages = [
+                  {"role": "user", "content": merged_system + "\n\n" + dump_instructions},
+                  {"role": "assistant", "content": clone_answer},
+              ]
+
+              # Add chat history
+              if history:
+                  for user_msg, assistant_msg in history:
+                      messages.append({"role": "user", "content": user_msg})
+                      messages.append({"role": "assistant", "content": assistant_msg})
+
+              # If history exist cat the message at the end of conversation
+              messages.append({"role": "user", "content": final_prompt})
+
+              # Print the full prompt for debugging
+              print("--- FULL PROMPT SENT TO MODEL ---")
+              print(messages)
+              print("--- END FULL PROMPT ---")
+
+              try:
+                  completion = client.chat.completions.create(
+                      model=model_name,
+                      messages=messages,
+                      temperature=temperature,
+                      top_p=0.6,
+                      max_tokens=max_tokens,
+                      stream=False,
+                  )
+                  return completion.choices[0].message.content
+              except Exception as e:
+                  if "500" in str(e) and "Conversation roles must alternate" in str(e):
+                      # This part handles a common error in some models.
+                      # You can try to re-format the messages here if needed.
+                      return "Lỗi 500: Roles không luân phiên. Đã merge messages, thử chạy lại."
+                  return f"Đã xảy ra lỗi: {e}"
+
+
+          def main(
+              question: str,
+              language: str = "",
+              contexts: Optional[List[Dict[str, Any]]] = None,
+              history: List[Tuple[str, str]] = None,
+              doc_birthday: Optional[Dict] = None,
+          ) -> str:
+              return generate_response_with_context(
+                  question=question,
+                  language=language,
+                  contexts=contexts,
+                  source_info="",
+                  history=history,
+                  doc_birthday=doc_birthday,
+              )
+        language: python3
+        input_transforms:
+          history:
+            expr: flow_input.history
+            type: javascript
+          contexts:
+            expr: results.k[0]
+            type: javascript
+          language:
+            expr: flow_input.language
+            type: javascript
+          question:
+            expr: flow_input.Question
+            type: javascript
+          doc_birthday:
+            expr: results.k[2]
+            type: javascript
+      summary: LLM answer
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  properties:
+    Question:
+      type: string
+      description: User Query
+      default: ""
+      nullable: false
+    Upload:
+      default: false
+      type: boolean
+      description: User's Document
+    Qdrant_Config:
+      default:
+        host: 192.168.2.78
+        port: "1237"
+        vector_size: 768
+      type: object
+      description: Vector Database
+    MinIO_Config:
+      default:
+        endpoint: 192.168.2.78:1235
+        access_key: minioadmin
+        secret_key: minioadmin123
+        secure: false
+      type: object
+      description: Data Warehouse Store Document
+    Postgre_Config:
+      default:
+        host: 192.168.2.78
+        database: docsdb
+        user: user
+        password: password
+        port: 1234
+      nullable: false
+      type: object
+      description: SQL Database
+    RAG_Config:
+      default:
+        version: 1
+        url: 192.168.2.78:7001
+        grpc: true
+      type: object
+      description: ""
+    session_id:
+      type: string
+      description: ""
+      default: ""
+      nullable: false
+    history:
+      default: []
+      items:
+        type: string
+      type: array
+      description: ""
+    rerank:
+      default: false
+      type: boolean
+      description: ""
+    birthday:
+      type: string
+      description: ""
+      default: ""
+      nullable: false
+    language:
+      type: string
+      description: Output Language
+      default: Vietnamese
+  required:
+    - Question
+    - session_id
+    - birthday
+  type: object
+  order:
+    - Question
+    - Upload
+    - Qdrant_Config
+    - MinIO_Config
+    - Postgre_Config
+    - RAG_Config
+    - session_id
+    - history
+    - rerank
+    - birthday
+    - language
