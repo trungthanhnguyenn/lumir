@@ -472,9 +472,9 @@ class CalNum:
 
         Formula: reduceToSingleDigit(abs(soul - personality)) (1 digit)
         """
-        soul = self.calculate_soul()
-        personality = self.calculate_personality()
-        return self.reduce_to_single_digit(abs(soul - personality))
+        lifepath = self.calculate_life_path()
+        life_purpose = self.calculate_life_purpose()
+        return self.reduce_to_single_digit(abs(lifepath - life_purpose))
 
     def calculate_milestone_phase(self) -> Dict[str, int]:
         """
