@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8686:8686"
+    environment:
+      - ENVIRONMENT=production
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8686/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    ports:
+      - "7861:7861"
+    environment:
+      - WINDMILL_API_URL=http://backend:8686
+    depends_on:
+      backend:
+        condition: service_healthy
+    volumes:
+      - ./app:/app
+    restart: unless-stopped
+
+networks:
+  default:
+    name: lumir-ai-network
