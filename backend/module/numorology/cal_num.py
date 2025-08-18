@@ -398,7 +398,7 @@ class CalNum:
                 if digit.isdigit():
                     name_digits.add(int(digit))
 
-        return set(range(1, 10)) - name_digits
+        return sorted(set(range(1, 10)) - name_digits)
 
     def check_karmic_debt(self) -> str:
         """
@@ -437,7 +437,7 @@ class CalNum:
             return []
 
         max_freq = max(digit_counts.values())
-        return [num for num, freq in digit_counts.items() if freq == max_freq]
+        return sorted([num for num, freq in digit_counts.items() if freq == max_freq])
 
     def get_societal_adaptability_index(self) -> str:
         """
@@ -596,9 +596,9 @@ class CalNum:
         if current_month < self.month or (current_month == self.month and current_day < self.day):
             personal_year -= 1
         
-        personal_year = self.reduce_number(personal_year)
+        personal_year = self.reduce_number_no_master(personal_year)
         # Personal Day
-        personal_day = self.reduce_number(current_day + current_month + personal_year)
+        personal_day = self.reduce_number_no_master(current_day + current_month + personal_year)
 
         return {
             "personal_year": personal_year,
