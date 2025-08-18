@@ -93,6 +93,11 @@ class CalNum:
         self.month_r = self.reduce_number_with_masters(self.month)
         self.year_r = self.reduce_number_with_masters(self.year)
 
+        # Calculate date no master
+        self.day_r_no_master = self.reduce_number_no_master(self.day)
+        self.month_r_no_master = self.reduce_number_no_master(self.month)
+        self.year_r_no_master = self.reduce_number_no_master(self.year)
+
     def _parse_date(self, date_str: str, date_type: str) -> datetime:
         """Parse date string to datetime object."""
         try:
@@ -122,6 +127,14 @@ class CalNum:
             Reduced number (1-9, 11, or 22)
         """
         while n > 9 and n not in {11, 22}:
+            n = sum(int(digit) for digit in str(n))
+        return n
+    
+    def reduce_number_no_master(self, n: int) -> int:
+        """
+        Reduce number to single digit.
+        """
+        while n > 9:
             n = sum(int(digit) for digit in str(n))
         return n
 
@@ -285,7 +298,7 @@ class CalNum:
 
         Formula: reduce_number(sum(nameNumbers)) (giữ 11/22)
         """
-        return self.reduce_number(sum(self.name_numbers))
+        return self.reduce_number_with_masters(sum(self.name_numbers))
 
     def calculate_balance(self) -> int:
         """
@@ -350,7 +363,7 @@ class CalNum:
 
         Formula: reduce_number(day) (keep master number 11/22)
         """
-        return self.reduce_number(self.day)
+        return self.reduce_number_with_masters(self.day)
 
     def calculate_subconscious_strength(self) -> int:
         """
@@ -370,7 +383,7 @@ class CalNum:
         """
         life_path = self.calculate_life_path()
         life_purpose = self.calculate_life_purpose()
-        return self.reduce_number(life_path + life_purpose)
+        return self.reduce_number_with_masters(life_path + life_purpose)
 
     def get_missing_aspects(self) -> Set[int]:
         """
@@ -473,6 +486,8 @@ class CalNum:
         Formula: reduceToSingleDigit(abs(soul - personality)) (1 digit)
         """
         soul = self.calculate_soul()
+        if soul in [11, 22, 33]:
+            soul = sum(int(digit) for digit in str(soul))
         personality = self.calculate_personality()
         return self.reduce_to_single_digit(abs(soul - personality))
 
@@ -513,10 +528,10 @@ class CalNum:
         - challenge_3 = abs(challenge_1 - challenge_2)
         - challenge_4 = abs(monthR - yearR)
         """
-        challenge_1 = abs(self.day_r - self.month_r)
-        challenge_2 = abs(self.day_r - self.year_r)
+        challenge_1 = abs(self.day_r_no_master - self.month_r_no_master)
+        challenge_2 = abs(self.day_r_no_master - self.year_r_no_master)
         challenge_3 = abs(challenge_1 - challenge_2)
-        challenge_4 = abs(self.month_r - self.year_r)
+        challenge_4 = abs(self.month_r_no_master - self.year_r_no_master)
 
         return {
             "challenge_1": challenge_1,
@@ -576,8 +591,12 @@ class CalNum:
         current_day = self.current_datetime.day
 
         # Personal Year
-        personal_year = self.reduce_number(self.day + self.month + current_year)
+        personal_year = self.day + self.month + current_year
 
+        if current_month < self.month or (current_month == self.month and current_day < self.day):
+            personal_year -= 1
+        
+        personal_year = self.reduce_number(personal_year)
         # Personal Day
         personal_day = self.reduce_number(current_day + current_month + personal_year)
 
