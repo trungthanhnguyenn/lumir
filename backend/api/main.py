@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from backend.module.router.get_numerology_infor import router as numerology_router
+from backend.module.router.get_trade_index import router as trade_index_router
 import logging
 
 # Configure logging
@@ -41,6 +42,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Include routers
 app.include_router(numerology_router)
+app.include_router(trade_index_router)
 
 # Root endpoint
 @app.get("/")
