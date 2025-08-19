@@ -597,11 +597,16 @@ class CalNum:
             personal_year -= 1
         
         personal_year = self.reduce_number_no_master(personal_year)
+
+        # Personal Month
+        personal_month = self.reduce_number_no_master(current_month + personal_year)
+
         # Personal Day
         personal_day = self.reduce_number_no_master(current_day + current_month + personal_year)
 
         return {
             "personal_year": personal_year,
+            "personal_month": personal_month,
             "personal_day": personal_day
         }
 
@@ -636,3 +641,4 @@ class CalNum:
             "age_milestones": self.calculate_age_milestones(),
             "alignment_signals": self.calculate_alignment_signals()
         }
+        
