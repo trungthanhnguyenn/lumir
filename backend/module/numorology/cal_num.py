@@ -641,4 +641,3 @@ class CalNum:
             "age_milestones": self.calculate_age_milestones(),
             "alignment_signals": self.calculate_alignment_signals()
         }
-        
